@@ -1,0 +1,109 @@
+\documentclass[a4paper]{article}
+
+% report (c. 12 pages)
+%
+% middle of December: first complete version of the report due
+% middle of January: first complete version of the presentation slides due
+% early February: give the presentation and participate in the discussion
+
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, top=4cm, bottom=4cm, left=4cm, right=4cm]{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+%\usepackage[urw-garamond]{mathdesign}
+\usepackage{csquotes}
+\usepackage{draftwatermark}
+
+\usepackage[square,numbers]{natbib}
+\bibliographystyle{abbrvnat}
+
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{xspace}
+\usepackage{mathrsfs}
+\usepackage{hyperref}
+
+\newcommand{\fail}{\mathrm{not } \ \xspace}
+%\newcommand{\from}{\mathrm{\ \xspace :- \ \xspace}}
+\newcommand{\from}{\ensuremath{\leftarrow}}
+\newcommand{\problem}{\ensuremath{\mathscr{P}}}
+
+\newcommand{\entails}{\models}
+
+% Least model (of a Horn program).
+\newcommand{\lm}{\mathrm{lm}}
+
+% Set of stable models (of a program).
+\newcommand{\stm}{\mathrm{STM}}
+\newcommand{\sol}{\mathrm{Sol}}
+\newcommand{\compl}{\mathrm{Co}}
+\newcommand{\groundext}{\mathrm{Gr}}
+\newcommand{\defense}{\mathrm{Def}_F}
+
+% Entails according to well founded semantics.
+\newcommand{\wf}{\ensuremath{\entails_{wf}}}
+
+% Entails according to stable model semantics using brave reasoning
+\newcommand{\brave}{\ensuremath{\entails_{st}^b}}
+
+% Entails according to stable model semantics using cautious reasoning
+\newcommand{\caut}{\ensuremath{\entails_{st}^c}}
+
+% Selective Linear Definite-clause with Negation as Failure
+\newcommand{\sldnf}{\ensuremath{\vdash_{NF}}}
+
+\newcommand{\universe}{\mathcal{U}}
+\newcommand{\afs}{\mathcal{F}}
+\newcommand{\attacks}{\rightsquigarrow}
+
+\newcommand{\alc}{\ensuremath{\mathcal{ALC}}}
+\newcommand{\elp}{\ensuremath{\mathcal{EL^+}}}
+\newcommand{\el}{\ensuremath{\mathcal{EL}}}
+\newcommand{\hl}{\ensuremath{\mathcal{HL}}}
+
+% TBox
+\newcommand{\tb}{\ensuremath{\mathcal{T}}}
+
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+\newtheorem{theorem}{Theorem}
+\newtheorem{remark}{Remark}
+
+\SetWatermarkScale{5}
+
+\begin{document}
+\begin{center}
+
+{\bfseries\Large{Pinpointing in the Description Logic \elp}\\[3mm]}
+Lorenz~Leutgeb \\ \href{mailto:lorenz.leutgeb@mailbox.tu-dresden.de}{\texttt{lorenz.leutgeb@mailbox.tu-dresden.de}}
+
+\end{center}
+\begin{abstract}
+Description Logic (DL) is an area of active research in the field knowledge representation and artificial intelligence. It is concerned with representing concepts in formal logics whose expressiveness lies between propositional logic and first order logic, and (computationally) reasoning about them.
+A key reasoning problem is the question of whether one concept is subsumed by another. Further, given such a subsumption relationship, the goal of axiom pinpointing is to find those axioms that give rise to the subsumption.
+We are concerned with the the description logic \elp in particular, for which subsumption can be solved in polynomial time. An algorithm for axiom pinpointing, based on a subsumption algorithm, is discussed
+in detail. We elaborate complexity results and discuss weaker variants that still behave well in practice.
+\end{abstract}
+
+\section{Introduction}
+\label{intro}
+
+\section{Subsumption in \elp}
+\label{sec:subs}
+
+\section{Pinpointing in \elp}
+\label{sec:prelim:lp}
+
+\subsection{Complexity Results}
+
+\section{Conclusions and Open Questions}
+\label{sec:con}
+
+\subsection{Summary}
+
+\subsection{Open Questions}
+
+\bibliography{ref}
+
+\end{document}
