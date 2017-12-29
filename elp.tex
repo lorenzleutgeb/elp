@@ -1,84 +1,42 @@
-\documentclass[a4paper]{article}
-
-% report (c. 12 pages)
-%
-% middle of December: first complete version of the report due
-% middle of January: first complete version of the presentation slides due
-% early February: give the presentation and participate in the discussion
+\documentclass{llncs}
 
 \usepackage[utf8]{inputenc}
-\usepackage[a4paper, top=4cm, bottom=4cm, left=4cm, right=4cm]{geometry}
-\usepackage{hyperref}
-\usepackage{graphicx}
-%\usepackage[urw-garamond]{mathdesign}
-\usepackage{csquotes}
-\usepackage{draftwatermark}
+\usepackage[T1]{fontenc}
 
-\usepackage[square,numbers]{natbib}
-\bibliographystyle{abbrvnat}
-
-\usepackage{amsthm}
-\usepackage{amssymb}
-\usepackage{amsmath}
-\usepackage{xspace}
-\usepackage{mathrsfs}
 \usepackage{hyperref}
 
-\newcommand{\fail}{\mathrm{not } \ \xspace}
-%\newcommand{\from}{\mathrm{\ \xspace :- \ \xspace}}
-\newcommand{\from}{\ensuremath{\leftarrow}}
-\newcommand{\problem}{\ensuremath{\mathscr{P}}}
+% Needs splncs03.bst via Springer
+\bibliographystyle{splncs03}
 
-\newcommand{\entails}{\models}
+\usepackage{amsmath, amssymb} % For \flalign, \top, ...
+\usepackage[ruled,linesnumbered]{algorithm2e}
 
-% Least model (of a Horn program).
-\newcommand{\lm}{\mathrm{lm}}
+\usepackage[table,usenames,dvipsnames]{xcolor}
+\usepackage{nicefrac,xspace,csquotes}
 
-% Set of stable models (of a program).
-\newcommand{\stm}{\mathrm{STM}}
-\newcommand{\sol}{\mathrm{Sol}}
-\newcommand{\compl}{\mathrm{Co}}
-\newcommand{\groundext}{\mathrm{Gr}}
-\newcommand{\defense}{\mathrm{Def}_F}
+\newcommand{\alc}{\ensuremath{\mathcal{ALC}}\xspace}
+\newcommand{\al}{\ensuremath{\mathcal{AL}}\xspace}
+\newcommand{\elp}{\ensuremath{\mathcal{EL^+}}\xspace}
+\newcommand{\el}{\ensuremath{\mathcal{EL}}\xspace}
+\newcommand{\hl}{\ensuremath{\mathcal{HL}}\xspace}
+\newcommand{\tb}{\ensuremath{\mathcal{T}}\xspace} % TBox
+\newcommand{\ab}{\ensuremath{\mathcal{A}}\xspace} % ABox
+\newcommand{\nc}{\ensuremath{\mathsf{N_C}}\xspace} % concept names
+\newcommand{\nr}{\ensuremath{\mathsf{N_R}}\xspace} % role names
 
-% Entails according to well founded semantics.
-\newcommand{\wf}{\ensuremath{\entails_{wf}}}
+\newcommand{\snomed}{\textsc{Snomed CT}\xspace}
+\newcommand{\galen}{\textsc{Galen}\xspace}
 
-% Entails according to stable model semantics using brave reasoning
-\newcommand{\brave}{\ensuremath{\entails_{st}^b}}
+\newcommand{\subsume}{\sqsubseteq}
 
-% Entails according to stable model semantics using cautious reasoning
-\newcommand{\caut}{\ensuremath{\entails_{st}^c}}
-
-% Selective Linear Definite-clause with Negation as Failure
-\newcommand{\sldnf}{\ensuremath{\vdash_{NF}}}
-
-\newcommand{\universe}{\mathcal{U}}
-\newcommand{\afs}{\mathcal{F}}
-\newcommand{\attacks}{\rightsquigarrow}
-
-\newcommand{\alc}{\ensuremath{\mathcal{ALC}}}
-\newcommand{\elp}{\ensuremath{\mathcal{EL^+}}}
-\newcommand{\el}{\ensuremath{\mathcal{EL}}}
-\newcommand{\hl}{\ensuremath{\mathcal{HL}}}
-
-% TBox
-\newcommand{\tb}{\ensuremath{\mathcal{T}}}
-
-\newtheorem{definition}{Definition}
-\newtheorem{example}{Example}
-\newtheorem{theorem}{Theorem}
-\newtheorem{remark}{Remark}
-
-\SetWatermarkScale{5}
+\title{Pinpointing in the Description Logic \elp}
+\author{Lorenz~Leutgeb}
+\institute{International Center for Computational Logic, TU Dresden\\ \email{lorenz.leutgeb@mailbox.tu-dresden.de}}
 
 \begin{document}
-\begin{center}
 
-{\bfseries\Large{Pinpointing in the Description Logic \elp}\\[3mm]}
-Lorenz~Leutgeb \\ \href{mailto:lorenz.leutgeb@mailbox.tu-dresden.de}{\texttt{lorenz.leutgeb@mailbox.tu-dresden.de}}
+\maketitle
 
-\end{center}
 \begin{abstract}
 Description Logic (DL) is an area of active research in the field knowledge representation and artificial intelligence. It is concerned with representing concepts in formal logics whose expressiveness lies between propositional logic and first order logic, and (computationally) reasoning about them.
 A key reasoning problem is the question of whether one concept is subsumed by another. Further, given such a subsumption relationship, the goal of axiom pinpointing is to find those axioms that give rise to the subsumption.
@@ -89,20 +47,275 @@ in detail. We elaborate complexity results and discuss weaker variants that stil
 \section{Introduction}
 \label{intro}
 
-\section{Subsumption in \elp}
-\label{sec:subs}
+Description Logic (DL)\marginpar{DL} is a successful subfield of research in Knowledge Representation and Reasoning (KRR). At its core lies a family of logic languages, called Description Logics \marginpar{DLs} (DLs). Most of these logics lie in decidable fragments of classical first order logic. Analysis of relations between expressiveness of logics and tractability of reasoning problems defined over them is a big effort within DL.
 
-\section{Pinpointing in \elp}
-\label{sec:prelim:lp}
+From an application standpoint\marginpar{Applications}, DLs are used to structure conceptual knowledge in problem domains like natural language processing, databases and ontologies. The Web Ontology Language (OWL), fundamental to the semantic web, is formally supported by Description Logic. Also, large biomedical knowledge bases like \snomed and \galen are expressed in DLs.
 
-\subsection{Complexity Results}
+A common reasoning problem is \emph{concept subsumption}\marginpar{Motivation}.\footnote{Other reasoning problems include \emph{satisfiability} and \emph{equivalence} of concepts, as well as \emph{consistency} of knowledge bases. Concept subsumption is the most relevant for this work.} Intuitively, it is equivalent to asking whether all objects that belong to concept $C$ also belong to concept $D$, under the axioms of a given knowledge base, i.e.~$D$ \emph{subsumes} $C$ wrt. the axioms. With the advent of large knowledge bases (hundreds of thousands axioms), new challenges arise: Assume that under the axioms of a large knowledge base, $D$ subsumes $C$, but it turns out that this consequence is not consistent with observations in the real world, so the knowledge base must be adjusted to better model reality. Now, which of the thousands of axioms give rise to the faulty conclusion? We call this problem \emph{axiom pinpointing}.
 
-\section{Conclusions and Open Questions}
-\label{sec:con}
+Naturally, we are interested in \textbf{computing \underline{min}imal \underline{a}xiom sets (MinA)} that explain why $D$ subsumes $C$.
+
+In this work\marginpar{Contents} we summarize results on axiom pinpointing for the description logic \elp. First, in Section \ref{sec:prelim}, we import syntax and semantics of the logics under consideration. Section \ref{sec:algos} is meant to showcase different approaches to axiom pinpointing. We follow the distinction made in \cite[Section 1]{family}: A \enquote{glass-box} algorithm based on a polynomial-time algorithm for subsumption in \elp is discussed in \ref{sec:glass}, while in \ref{sec:black} we address two \emph{black-box} algorithms. We defer all complexity results to Section \ref{sec:cmplx} where we address the complexity of finding a single (minimal) set of axioms (Section \ref{sec:one}) separately from the complexity of finding all (minimal) sets of axioms (Section \ref{sec:all}).
+
+Note that our investigation starts with the work by Baader, Pe{\~{n}}aloza and Suntisrivaraporn \cite{orig1,orig2}. We take into account subsequent results achieved by Pe{\~{n}}aloza and Sertkaya \cite{hard,family}.
+
+\section{Preliminaries}
+\label{sec:prelim}
+
+In this section we introduce syntax and semantics of \elp and introduce the core reasoning problem of concept subsumption.
+
+Description Logic considers syntax called \emph{concept descriptions}\marginpar{Syntax}, inductively defined via \emph{constructors} from a set of concept names and a set of role names. The constructors of the respective languages relevant to this work are listed in the upper section of the column titled \emph{Syntax} in Table \ref{tbl:langs}.
+
+\begin{table}
+\caption{Overview of syntax and semantics of selected logics. Here, $A, B \in \nc$ are concept names, $C, D$ are concept descriptions, $r_1, \ldots, r_n \in \nr$ are role names. We denote an interpretation by $I$ and the corresponding domain by $\Delta^I$. GCI stands for General Concept Inclusion.}
+\begin{center}
+\rowcolors{2}{orange!5}{white}
+\begin{tabular}{|l|cc|cccc|}
+\hline
+Name & Syntax & Semantics &~\al ~&~\el ~&~\elp ~&~\hl ~\\
+\hline
+\hline
+Top & $\top$ & $\Delta^I$ & \checkmark & \checkmark & \checkmark & \checkmark \\
+Bottom & $\bot$ & $\emptyset$ & \checkmark & & & \\
+Atomic Negation & $ \neg A $ & $\Delta^I \setminus A^I$ & \checkmark & & & \\
+Conjunction & $ C \sqcap D $ & $C^I \cap D^I$ & \checkmark & \checkmark & \checkmark & \checkmark \\
+%yDisjunction & $ C \sqcup D $ & $C^I \cup D^I$ & \checkmark & & & \\
+Value Restriction & $ \forall r . C $ & \shortstack[c]{$\{x \in \Delta^I \mid \forall y \in \Delta^I :$ \\[0mm] $(x, y) \in r^I \rightarrow y \in C^I \}$} & \checkmark & & & \\
+Existential Restr.~& $ \exists r . C $ & \shortstack[c]{$ \{x \in \Delta^I \mid \exists y \in \Delta^I :$ \\ $(x, y) \in r^I \wedge y \in C^I \} $} & & \checkmark & \checkmark & \\
+\hline
+\hline
+GCI & $C \sqsubseteq D$ & $C^I \subseteq D^I$ & \checkmark & \checkmark & \checkmark & \checkmark \\
+Concept Definition & $C \equiv D$ & $C^I = D^I$ & \checkmark & \checkmark & \checkmark & \checkmark \\
+Role Inclusion & $r_1 \circ \cdots \circ r_n \sqsubseteq s$ & $r_1^I \circ \cdots \circ r_n^I \subseteq s^I$ & & & \checkmark & \\
+\hline
+\end{tabular}
+\end{center}
+\label{tbl:langs}
+\end{table}
+
+Semantics\marginpar{Semantics} are defined in terms of an interpretation $I$ which talks about a non-empty set of individuals denoted $\Delta^I$ by means of an interpretation function $\cdot^I$ as follows: $\cdot^I$ maps each concept name $A \in \nc$ to a set of individuals $A^I \subseteq \Delta^I$, and each role name $r \in \nr$ to a binary relation $r^I \subseteq \Delta^I \times \Delta^I$. Concept descriptions are interpreted by extending $\cdot^I$ as defined in the upper section of the column titled \emph{Semantics} in Table \ref{tbl:langs}.
+
+In our setting, knowledge bases take the form of finite sets of axioms. We call such a set \emph{TBox}\marginpar{TBox}, denoted by $\tb$. Axioms are relations between concept descriptions, and their form is shown in the lower section of Table \ref{tbl:langs}. We say that an axiom is \emph{satisfied} under $I$ if the corresponding condition (column titled \emph{Semantics}) holds. Further, we say that an interpretation $I$ \emph{satisfies} $\tb$ if all axioms in $\tb$ are satisfied by $I$.
+
+Since all \elp TBoxes are consistent by definition, satisfiability is trivial. Instead, we are generally interested in deciding the reasoning problem of \emph{concept subsumption}.
+
+\begin{definition}[{Concept Subsumption, cf.~\cite[Def.~1]{orig1}}]
+\label{def:subs}
+Given \marginpar{$C \subsume_{\tb} D$} two \elp concept descriptions $C, D$ and an $\elp$ TBox \tb, $C$ is subsumed by $D$ wrt.~\tb (written $C \sqsubseteq_\tb D$) if for every interpretation $I$ that satisfies \tb we have that $C^I \subseteq D^I$.
+\end{definition}
+
+With this, we proceed to define minimal axiom sets which are crucial to this work.
+
+\begin{definition}[{MinA, cf.~\cite[Def.~2 without partitioning $\tb$]{orig1}}]
+\label{def:mina}
+Let \marginpar{MinA} $\tb$ be an \elp TBox and $A, B$ concept names occurring in it such that $A \subsume_\tb B$. Then a \emph{minimal axiom set (MinA)} for \tb wr.t.~$A \subsume B$ is a subset $\mathcal{S} \subseteq \tb$ such that $A \subsume_\mathcal{S} B$ but $A \not \subsume_\mathcal{S'} B$ for all strict subsets $\mathcal{S'} \subset S$.
+\end{definition}
+
+\begin{example}[{Humans and Animals (cf.~\cite[Sec.~3]{orig1,orig2})}]
+\label{ex:ha}
+Consider the following TBox \tb containing axioms that model knowledge about species:
+\begin{flalign}
+\mathsf{Human} &\subsume \exists \mathsf{parent} . \mathsf{Human} & \text{Humans have a human parent.} \tag{$a_1$} \\
+\mathsf{Human} &\subsume \mathsf{Monkey} & \text{Humans are monkeys.} \tag{$a_2$} \\
+\exists \mathsf{parent} . \mathsf{Monkey} &\subsume \mathsf{Animal} & \text{Monkey parent? It's an animal.} \tag{$a_3$} \\
+\mathsf{Monkey} &\subsume \mathsf{Animal} & \text{Monkeys are animals.} \tag{$a_4$} \\
+\mathsf{Fish} &\subsume \mathsf{Animal} & \text{Fish are animals.} \tag{$a_5$}
+\end{flalign}
+
+Observe that $\mathsf{Human} \subsume_\tb \mathsf{Animal}$ holds. Now assume evidence has been found that not all humans are animals, thus we should adjust our TBox such that this relationship will not hold anymore. What are the axioms that give rise to the subsumption? We can see that two minimal sets of axioms explain it: $\mathcal{S}_1 = \{a_2, a_4\}$ and $\mathcal{S}_2 = \{ a_1, a_2, a_3 \}$. Even though $|\mathcal{S}_1| < |\mathcal{S}_2|$ both are MinAs, since we cannot find strict subsets that explain why all humans are animals.
+
+Also note that the consequence holds when removing either $a_1$ and $a_3$ or $a_4$ alone and that $a_2$ is contained in both sets. The axiom $a_5$ is not relevant in our scenario, and we may imagine that there are thousands of other irrelevant axioms in \tb.
+
+We hypothesize that $a_4$ is indeed a sensible axiom and $a_1, a_3$ are reasonable, but $a_2$ causes trouble since it states that humans are monkeys. If we remove $a_2$, then the resulting TBox will conform with our observation.
+\end{example}
+
+\section{Algorithms}
+\label{sec:algos}
+
+In this section we want to show how one MinA and multiple MinAs can be computed. We distinguish between \emph{glass-box} algorithms and \emph{black-box} algorithms. The former captures algorithms that may take advantage of the internals of the reasoning algorithm by keeping state, and generally using more involved constructions. On the contrary, the latter means algorithms that are built on top of basic reasoning services, thus are more abstract but can leverage already existing implementations of these reasoning services.
+
+We will detail one glass box approach and a black box approach with some variations.
+
+\subsection{Glass-Box Approach}
+\label{sec:glass}
+
+The glass box algorithm we present is designed as an extension of a polynomial-time algorithm for subsumption \cite{whatelse} in \elp (cf.~Def.~\ref{def:subs}). Therefore we first consider the algorithm for subsumption (Algorithm \ref{alg:sub}), and only then extend it to compute MinAs (Algorithm \ref{alg:pin}).
+
+Following two simplifications based on \marginpar{Normalization} normalization greatly reduce the number of cases that need to be covered in the algorithm \cite[Sec.~2]{orig1}: (1) It is sufficient to address subsumption for concept names, given the following reduction: $C \sqsubseteq_\tb D$ if $A \sqsubseteq_{\tb \cup \{A \sqsubseteq C, D \sqsubseteq B \}} B$ where $A,B$ are new concept names not occurring in $C,D,\tb$. (2) It is possible to translate a TBox $\tb$ into an equivalent one in normal form (meaning that all GCIs are of the forms as presented in Table \ref{tbl:rules}) in time $\mathcal{O}(|\tb|)$. %TODO Cite!!!
+
+\begin{algorithm}
+  \KwIn{An \elp TBox $\tb$ in normal form over $\nc$ and $\nr$, and $A, B \in \nc$.}
+  \KwOut{\enquote{yes} if $A \subsume_\tb B$ holds, \enquote{no} otherwise.}
+  $\mathcal{A} := \{(A, A) \mid A \in \nc \}$ \tcp{Account for $A \subsume_\tb A$}
+  $\hspace{4.9mm} \cup~\{(A,\top) \mid A \in \nc \}$ \tcp{Account for $A \subsume_\tb \top$}
+  \While{there is an $i$ s.t. $1 \leq i \leq 5$, $a_i \in \tb'$ and $P_i \subseteq \mathcal{A}$ \tcp{see Table \ref{tbl:rules}}}{
+    $\mathcal{A} := \mathcal{A} \cup \{ q_i \}$ \tcp{Axiom $a_i$ explains $q_i$}
+  }
+  \If{$(A, B) \in \mathcal{A}$}{
+    \Return{\emph{\enquote{yes}}}
+  }
+  \Return{\emph{\enquote{no}}}
+  \caption{\textsc{Subsumption}($\tb$, $A$, $B$)}
+  \label{alg:sub}
+\end{algorithm}
+
+Note that lines 3 and 5 in Algorithm \ref{alg:sub} refer to Table \ref{tbl:rules}, and that the choice of $i$ in those lines is don't care nondeterministic.
+
+\begin{table}
+\caption{Completion rules for subsumption in \elp, adapted from \cite[Fig.~1]{orig1,orig2}, see also \cite[Fig.~5.2, p.~104]{meng-phd}. Rule $i$ is applicable if $a_i \in \tb$ and $P_i \subseteq \ab$. If rule $i$ is applied, then $q_i$ is added to $\ab$.}
+\begin{center}
+\rowcolors{2}{orange!5}{white}
+\begin{tabular}{|c|rcll|l|}
+\hline
+{\bfseries Rule} & \multicolumn{4}{c|}{\bfseries Applicability} & \multicolumn{1}{c|}{\bfseries Result} \\
+$i$
+ & \multicolumn{3}{c}{$a_i$ (GCI)} & $P_i$ (set of assertions) & $q_i$ (assertion) \\
+\hline\hline
+1& $A_1 \sqcap \cdots \sqcap A_n$&$\sqsubseteq$&$B$ & $(X, A_1), \ldots, (X,A_n)$ & $(X,B)$ \\
+2& $A$&$\sqsubseteq$&$\exists r.B$ & $(X,A)$ & $(X,r,B)$ \\
+3& $\exists r.A$&$\sqsubseteq$&$B$ & $(X,r,Y),(Y,A)$ & $(X,B)$ \\
+4& $r$&$\sqsubseteq$&$s$ & $(X,r,Y)$ & $(X,s,Y)$ \\
+5& $r \circ r'$&$\sqsubseteq$&$s$ & $(X,r,Y),(Y,r',Z)$ & $(X,s,Z)$\\
+\hline
+\end{tabular}
+\end{center}
+\label{tbl:rules}
+\end{table}
+
+Now we extend Algorithm \ref{alg:sub} to compute all MinAs in two steps: First, we modify it so that a monotone Boolean \emph{pinpointing formula} that corresponds to the subsumption relation in question is generated via labeling of assertions. Second, we obtain MinAs by finding models for the pinpointing formula, such that the interpretation of propositional variables corresponds to a selection of axioms in the MinAs.
+
+By means of a labeling function\marginpar{Labeling} $lab : \tb \longrightarrow \mathcal{R}$ (where $\mathcal{R}$ is a set of propositional variables) every axiom $a \in \tb$ is labeled with a unique propositional variable $lab(a) \in \mathcal{R}$, and we denote by $lab(\tb) \subseteq \mathcal{R}$ the set of labels of all axioms in $\tb$. A \emph{monotone Boolean formula over $lab(\tb)$} is a Boolean formula using (some of) the propositional variables $lab(\tb)$ and only the binary connectives conjunction and disjunction, as well as the nullary connective \texttt{true} for truth. A \marginpar{Valuation}\emph{valuation} is characterized by the set of propositional variables that it makes true. For a valuation $\mathcal{V} \subseteq lab(\tb)$ let $\tb_\mathcal{V} = \{ a \in \tb \mid lab(a) \in \mathcal{V}\}$ be the selection of axioms for which their corresponding label is made true under $\mathcal{V}$.
+
+\begin{definition}[{Pinpointing Formula \cite[Def.~3]{orig1}}]
+Given \marginpar{Pinpointing Formula} an \elp TBox \tb and concept names $A,B$ occuring in it, a monotone Boolean formula $\psi$ over $lab(\tb)$ is a \emph{pinpointing formula} for $\tb$ wrt.~$A \subsume B$ if for every valuation $\mathcal{V} \subseteq lab(\tb)$ it holds that $A \subsume_{\tb_\mathcal{V}} B$ iff $\mathcal{V}$ satisfies $\psi$.
+\end{definition}
+
+For the two MinAs in Example \ref{ex:ha}, $\mathcal{S}_1 = \{a_2, a_4\}$ and $\mathcal{S}_2 = \{ a_1, a_2, a_3 \}$, we obtain $a_2 \wedge (a_4 \vee (a_1 \wedge a_3))$ as a pinpointing formula.
+Lastly, to establish a correspondence, we also need to address $\subseteq$-minimality of valuations.
+
+\begin{proposition}[{\cite[Prop.~1]{orig1}}]
+Let $\psi$ be a pinpointing formula for $\tb$ wrt.~$A \subsume B$. Then $$\big\{ \tb_\mathcal{V} \mid \mathcal{V} \text{ is a $\subseteq$-minimal valuation satisfying } \psi \big\}$$ is the set of all MinAs for $\tb$ wrt.~$A \subsume B$.
+\end{proposition}
+
+\begin{algorithm}
+  \KwIn{An \elp TBox $\tb$ in normal form over $\nc$ and $\nr$.}
+  \KwOut{A set of assertions and a labeling function.}
+  $\mathcal{A} := \{(A, A) \mid A \in \nc \}$ \label{alg:pin:acc:begin} \tcp{Account for $A \subsume_\tb A$.}
+  $\hspace{4.9mm} \cup~\{(A,\top) \mid A \in \nc \}$ \label{alg:pin:acc:end} \tcp{Account for $A \subsume_\tb \top$.}
+  $lab(a) := \texttt{true}$ for all $a \in \mathcal{A}$ \label{alg:pin:initlbl} \tcp{Initialize labels.}
+  \While{there is an $i$ s.t. $1 \leq i \leq 5$, $a_i \in \tb$ and $P_i \subseteq \mathcal{A}$ \label{alg:pin:loop:begin}\tcp{see Table \ref{tbl:rules}}}{
+      $\phi = lab(a_i) \wedge lab(P_i)$ \\
+      \uIf{$q_i \not \in \mathcal{A}$}{
+          \tcp{$a_i$ is the only known explanation of $a_i$.}
+        $\mathcal{A} := \mathcal{A} \cup \{ q_i \}$\\
+        $lab(q_i) := \phi$\\
+      }
+      \Else{\tcp{$q_i$ can already be explained, $a_i$ might be a new explanation!}
+        $\psi = lab(q_i)$ \\
+        \If{$\psi \vee \phi \not \equiv \psi$}{
+          \tcp{Override, as $q_i$ might be explained by $\psi$ or $\phi$.}
+          $lab(q_i) := \psi \vee \phi$
+        }
+      }
+      \label{alg:pin:loop:end}
+  }
+  \Return{$(\mathcal{A}, lab)$}
+  \caption{\textsc{AllMinAs}($\tb$)}
+  \label{alg:pin}
+\end{algorithm}
+
+The initial assertions (added in lines \ref{alg:pin:acc:begin} and \ref{alg:pin:acc:end}) of the form $(A, A)$ and $(A, \top)$ where $A \in \nc$ are labeled with \texttt{true} in line \ref{alg:pin:initlbl}.
+
+Note that Algorithm \ref{alg:pin} terminates in time exponential in $|\tb|$, and it allows us to find all MinAs not only for a specific subsumption relation $A \subsume_\tb B$, but we may query the returned set of assertions for $(A, B)$ and consider $lab((A, B))$ for any subsumption relation of interest.
+
+More formally (cf.~\cite[Thm.~2]{orig1,orig2}), the resulting set of assertions $\mathcal{A}$, after termination of the loop in lines \ref{alg:pin:loop:begin}-\ref{alg:pin:loop:end} satisfies the following properties: (1) $A \subsume_\tb B$ if and only if $(A, B) \in \mathcal{A}$, and (2) $lab((A,B))$ is a pinpointing formula for $\tb$ wrt. $A \subsume B$.
+
+As expected, this algorithm may be generalized so that the input need not be normalized (cf.~\cite[Sec.~3]{orig1,orig2} and \cite[Sec.~5.2, p.~107]{meng-phd}).
+
+\subsection{Black-Box Approaches}
+\label{sec:black}
+
+In this section we want to present a na\"{i}ve algorithm and a slightly more involved improved variant, to compute \emph{one} minimal set of axioms for a given subsumption consequence, in a \emph{black-box} manner: Both Algorithm \ref{alg:linone} and \ref{alg:logone}, discussed below, only rely on deciding subsumption and counting/choosing elements of the input TBox. In contrast to Algorithm \ref{alg:sub} and its extension Algorithm \ref{alg:pin} from the previous section, the structure of individual axioms is not considered. Consequently, their approach is exposed in a more direct fashion.
+
+Algorithm \ref{alg:linone} linearily scans a working copy of the given knowledge base: For every axiom, it is tested whether the subsumption relation under question still holds without it. If this is the case, then it is removed from the working copy. Clearly, $\mathcal{O}(|\tb|)$ subsumption tests must be performed. The result is a minimal set of axioms.
+
+\begin{algorithm}
+  \KwIn{An \elp TBox $\tb = \{a_1, \ldots, a_n\}$ over $\nc$ and $\nr$, and $A, B \in \nc$.}
+  \KwOut{If $A \subsume_\tb B$ holds, one MinA for $\tb$ wrt. $A \subsume B$, else $\emptyset$.}
+  \If{$A \not \subsume_\tb B$}{
+    \Return{$\emptyset$}
+  }
+  $\mathcal{S} := \tb$ \tcp{Initialize MinA to set of all axioms.}
+  \For{$1 \leq i \leq n$ \label{alg:linone:loop:begin}}{
+  \If{$A \subsume_{\mathcal{S} \setminus \{a_i\}} B$}{
+    $\mathcal{S} := \mathcal{S} \setminus \{ a_i \}$ \tcp{Remove irrelevant axiom.}
+  }
+  \label{alg:linone:loop:end}
+  }
+  \Return{$\mathcal{S}$}
+  \caption{\textsc{LinOneMinA}($\tb$, $A$, $B$)\newline (cf.~\cite[Alg.~1]{orig1}, \cite[Alg.~1]{debugging}, \cite[Alg.~7, p.~97]{meng-phd})}
+  \label{alg:linone}
+\end{algorithm}
+
+Algorithm \ref{alg:logone} employs a divide-and-conquer approach reminiscent of binary search. The minimal axiom set $\mathcal{S}$ is constructed recursively. For every recursive call, the input TBox is split into two halves (lines \ref{alg:logone:split1} and \ref{alg:logone:split2}) and in case any of the two halves preserves $A \subsume B$, search is continued in this part of the input. Otherwise, $\mathcal{S}$ is constructed as the union of the result for both halves respectively. With this approach, only $\mathcal{O}((|\mathcal{S}| - 1) + |\mathcal{S}| \cdot \log(|\tb|/|\mathcal{S}|))$ subsumption tests need to be performed.
+
+\begin{algorithm}
+  \KwIn{An \elp TBox $\tb = \{a_1, \ldots, a_n\}$ over $\nc$ and $\nr$, and $A, B \in \nc$.}
+  \KwOut{If $A \subsume_\tb B$ holds, one MinA for $\tb$ wrt. $A \subsume B$, else $\emptyset$.}
+  \If{$|\tb| = 1$}{
+    \Return{$\tb$}
+  }
+  $L := \{ a_i \in \tb \mid 1 \leq i \leq \nicefrac{n}{2} \}$ \label{alg:logone:split1}\\
+  $R := \{ a_i \in \tb \mid \nicefrac{n}{2} + 1 \leq i \leq n \}$ \label{alg:logone:split2}\\
+  \If{$A \subsume_{\mathcal{S} \cup L} B$}{
+    \Return{\textsc{LogOneMinA}($L$, $A$, $B$, $\mathcal{S}$)}
+  }
+  \If{$A \subsume_{\mathcal{S} \cup R} B$}{
+    \Return{\textsc{LogOneMinA}($R$, $A$, $B$, $\mathcal{S}$)}
+  }
+  $\mathcal{S}_1 := $ \textsc{LogOneMinA}($L$, $A$, $B$, $\mathcal{S} \cup R$)\\
+  $\mathcal{S}_2 := $ \textsc{LogOneMinA}($R$, $A$, $B$, $\mathcal{S} \cup \mathcal{S}_1$)\\
+  \Return{$\mathcal{S}_1 \cup \mathcal{S}_2$}
+  \caption{\textsc{LogOneMinA}($\tb$, $A$, $B$, $\mathcal{S}$)\newline (cf.~\cite[Alg.~2]{debugging}, \cite[Alg.~8, p.~98]{meng-phd})}
+  \label{alg:logone}
+\end{algorithm}
+
+\section{Complexity}
+\label{sec:cmplx}
+
+In this section we briefly address the computational complexity of computing one MinA and all MinAs respectively.
+
+\subsection{All MinAs}
+\label{sec:all}
+
+Since there may be exponentially many MinAs for a given \elp TBox, it is clear that an exponential runtime in the worst-case cannot be avoided.
+
+\begin{example}[{\cite[Ex.~1]{orig1,orig2}}]
+Given $n \geq 1$, we construct a \hl TBox of size linear in $n$, that gives rise to $2^n$ MinAs: $$\tb_n := \big\{~~B_{i-1} \subsume P_i \sqcap Q_i,~~P_i \subsume B_i,~~Q_i \subsume B_i~~\mid~~1 \geq i \geq n~~\big\}$$ Note that there are $2^n$ MinAs for $\tb_n$ wrt.~$B_0 \subsume B_n$, since for each $i$ with $1 \leq i \leq n$ either the axiom $P_i \subsume B_i$ or the axiom $Q_i \subsume B_i$ alone might be in the MinA.
+\end{example}
+
+With this, \cite{orig1,orig2} starts an investigation. In particular, since one might regard the problem of computing all MinAs as an enumeration problem, this raises the question whether there is an output polynomial algorithm for it.
+
+A first result \cite[Thm.~5]{orig1,orig2} shows that there there is no output polynomial algorithm that computes all MinAs, unless \textsc{P} = \textsc{NP}, for a more specific setting where some axioms in the \tb are considered \emph{static} (not refutable).
+
+Following that, in \cite[Thm.~2]{hard} the more general case (all axioms refutable) is shown to be \enquote{at least as hard as recognizing the set of all minimal transversals of a given hypergraph \cite{hypmintrav}, which is a prominent open problem in hypergraph theory} (quoting from \cite{hard}, importance of the problem surveyed in~\cite{hyperai}).
+
+A comprehensive analysis of the complexity of computing all MinAs in different variants can be found in \cite{family}, where similar logics are considered.
+
+\subsection{One MinA}
+\label{sec:one}
+
+Algorithm \ref{alg:linone} shows how one MinA can be computed in polynomial time. Since the loop in lines \ref{alg:linone:loop:begin}-\ref{alg:linone:loop:end} is executed exactly $n = |\tb|$ times, and the subsumption test also runs in time $\mathcal{O}(P(|\tb|))$, an overall time complexity polynomial in $|\tb|$ is achieved. The result is highlighted in \cite[Thm.~6]{orig1,orig2}.
+
+\section{Towards Application in Practice}
+
+As stated in the previous section, computing one MinA takes time polynomial in the number of axioms in the TBox, thus in the size of the knowledge base. While this might sound promising for practical applications and implementation, experimental reports show a different picture: In \cite[Sec.~5.2, p.~97]{meng-phd}, Suntisrivaraporn states that \enquote{The na\"{i}ve minimization algorithm did not terminate on \snomed in 48 hours}.
+
+Further empirical results are given in \cite[Sec.~6.2.5, p.~127]{meng-phd}.
 
 \subsection{Summary}
 
-\subsection{Open Questions}
+We have presented a formalization of axiom pinpointing based on \cite{orig1,orig2} and covered a glass-box as well as two black-box algorithms to compute MinAs. Complexity for the case of all MinAs still is not fully resolved.
 
 \bibliography{ref}
 
