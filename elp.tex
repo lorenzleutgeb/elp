@@ -51,11 +51,11 @@ Description Logic (DL)\marginpar{DL} is a successful subfield of research in Kno
 
 From an application standpoint\marginpar{Applications}, DLs are used to structure conceptual knowledge in problem domains like natural language processing, databases and ontologies. The Web Ontology Language (OWL), fundamental to the semantic web, is formally supported by Description Logic. Also, large biomedical knowledge bases like \snomed and \galen are expressed in DLs.
 
-A common reasoning problem is \emph{concept subsumption}\marginpar{Motivation}.\footnote{Other reasoning problems include \emph{satisfiability} and \emph{equivalence} of concepts, as well as \emph{consistency} of knowledge bases. Concept subsumption is the most relevant for this work.} Intuitively, it is equivalent to asking whether all objects that belong to concept $C$ also belong to concept $D$, under the axioms of a given knowledge base, i.e.~$D$ \emph{subsumes} $C$ wrt. the axioms. With the advent of large knowledge bases (hundreds of thousands axioms), new challenges arise: Assume that under the axioms of a large knowledge base, $D$ subsumes $C$, but it turns out that this consequence is not consistent with observations in the real world, so the knowledge base must be adjusted to better model reality. Now, which of the thousands of axioms give rise to the faulty conclusion? We call this problem \emph{axiom pinpointing}.
+A common reasoning problem is \emph{concept subsumption}\marginpar{Motivation}.\footnote{Other reasoning problems include \emph{satisfiability} and \emph{equivalence} of concepts, as well as \emph{consistency} of knowledge bases. Concept subsumption is the most relevant for this work.} Intuitively, this is the same as asking whether all objects that belong to concept $C$ also belong to concept $D$, under the axioms of a given knowledge base, i.e.~$D$ \emph{subsumes} $C$ wrt. the axioms. With the advent of large knowledge bases (hundreds of thousands axioms), new challenges arise: Assume that under the axioms of a large knowledge base, $D$ subsumes $C$, but it turns out that this consequence is not consistent with observations in the real world, so the knowledge base must be adjusted to better model reality. Now, which of the thousands of axioms give rise to the faulty conclusion? We call this problem \emph{axiom pinpointing}.
 
 Naturally, we are interested in \textbf{computing \underline{min}imal \underline{a}xiom sets (MinA)} that explain why $D$ subsumes $C$.
 
-In this work\marginpar{Contents} we summarize results on axiom pinpointing for the description logic \elp. First, in Section \ref{sec:prelim}, we import syntax and semantics of the logics under consideration. Section \ref{sec:algos} is meant to showcase different approaches to axiom pinpointing. We follow the distinction made in \cite[Section 1]{family}: A \enquote{glass-box} algorithm based on a polynomial-time algorithm for subsumption in \elp is discussed in \ref{sec:glass}, while in \ref{sec:black} we address two \emph{black-box} algorithms. We defer all complexity results to Section \ref{sec:cmplx} where we address the complexity of finding a single (minimal) set of axioms (Section \ref{sec:one}) separately from the complexity of finding all (minimal) sets of axioms (Section \ref{sec:all}).
+In this work\marginpar{Contents} we summarize results on axiom pinpointing for the description logic \elp. First, in Section \ref{sec:prelim}, we revisit syntax and semantics of the logics under consideration. Section \ref{sec:algos} is meant to showcase different approaches to axiom pinpointing. We follow the distinction made in \cite[Section 1]{family}: A \emph{glass-box} algorithm based on a polynomial-time algorithm for subsumption in \elp is discussed in \ref{sec:glass}, while in \ref{sec:black} we address two \emph{black-box} algorithms. We defer all complexity results to Section \ref{sec:cmplx} where we address the complexity of finding a single (minimal) set of axioms (Section \ref{sec:one}) separately from the complexity of finding all (minimal) sets of axioms (Section \ref{sec:all}).
 
 Note that our investigation starts with the work by Baader, Pe{\~{n}}aloza and Suntisrivaraporn \cite{orig1,orig2}. We take into account subsequent results achieved by Pe{\~{n}}aloza and Sertkaya \cite{hard,family}.
 
@@ -97,7 +97,7 @@ Semantics\marginpar{Semantics} are defined in terms of an interpretation $I$ whi
 
 In our setting, knowledge bases take the form of finite sets of axioms. We call such a set \emph{TBox}\marginpar{TBox}, denoted by $\tb$. Axioms are relations between concept descriptions, and their form is shown in the lower section of Table \ref{tbl:langs}. We say that an axiom is \emph{satisfied} under $I$ if the corresponding condition (column titled \emph{Semantics}) holds. Further, we say that an interpretation $I$ \emph{satisfies} $\tb$ if all axioms in $\tb$ are satisfied by $I$.
 
-Since all \elp TBoxes are consistent by definition, satisfiability is trivial. Instead, we are generally interested in deciding the reasoning problem of \emph{concept subsumption}.
+Since all \elp TBoxes are consistent by definition (there are no constructs that may cause logical inconsistencies \cite[Sec.~2]{orig1,orig2}), satisfiability of concepts and the consistency of TBoxes are trivial. Instead, we are generally interested in deciding the reasoning problem of \emph{concept subsumption}.
 
 \begin{definition}[{Concept Subsumption, cf.~\cite[Def.~1]{orig1}}]
 \label{def:subs}
@@ -132,9 +132,9 @@ We hypothesize that $a_4$ is indeed a sensible axiom and $a_1, a_3$ are reasonab
 \section{Algorithms}
 \label{sec:algos}
 
-In this section we want to show how one MinA and multiple MinAs can be computed. We distinguish between \emph{glass-box} algorithms and \emph{black-box} algorithms. The former captures algorithms that may take advantage of the internals of the reasoning algorithm by keeping state, and generally using more involved constructions. On the contrary, the latter means algorithms that are built on top of basic reasoning services, thus are more abstract but can leverage already existing implementations of these reasoning services.
+In this section we want to show how one MinA and multiple MinAs can be computed. We distinguish between \emph{glass-box} algorithms and \emph{black-box} algorithms. The former captures algorithms that may take advantage of the internals of the reasoning algorithm by inspecting axioms and their structure, generally using more involved data structures. On the contrary, the latter means algorithms that are built on top of basic reasoning services, thus are more abstract but can leverage already existing implementations of these reasoning services.
 
-We will detail one glass box approach and a black box approach with some variations.
+We will detail one glass-box approach and a black-box approach with some variations.
 
 \subsection{Glass-Box Approach}
 \label{sec:glass}
@@ -204,7 +204,7 @@ Let $\psi$ be a pinpointing formula for $\tb$ wrt.~$A \subsume B$. Then $$\big\{
   $\hspace{4.9mm} \cup~\{(A,\top) \mid A \in \nc \}$ \label{alg:pin:acc:end} \tcp{Account for $A \subsume_\tb \top$.}
   $lab(a) := \texttt{true}$ for all $a \in \mathcal{A}$ \label{alg:pin:initlbl} \tcp{Initialize labels.}
   \While{there is an $i$ s.t. $1 \leq i \leq 5$, $a_i \in \tb$ and $P_i \subseteq \mathcal{A}$ \label{alg:pin:loop:begin}\tcp{see Table \ref{tbl:rules}}}{
-      $\phi = lab(a_i) \wedge lab(P_i)$ \\
+      $\phi = lab(a_i) \wedge \bigwedge_{p \in P_i} lab(p)$ \\
       \uIf{$q_i \not \in \mathcal{A}$}{
           \tcp{$a_i$ is the only known explanation of $a_i$.}
         $\mathcal{A} := \mathcal{A} \cup \{ q_i \}$\\
@@ -235,7 +235,7 @@ As expected, this algorithm may be generalized so that the input need not be nor
 \subsection{Black-Box Approaches}
 \label{sec:black}
 
-In this section we want to present a na\"{i}ve algorithm and a slightly more involved improved variant, to compute \emph{one} minimal set of axioms for a given subsumption consequence, in a \emph{black-box} manner: Both Algorithm \ref{alg:linone} and \ref{alg:logone}, discussed below, only rely on deciding subsumption and counting/choosing elements of the input TBox. In contrast to Algorithm \ref{alg:sub} and its extension Algorithm \ref{alg:pin} from the previous section, the structure of individual axioms is not considered. Consequently, their approach is exposed in a more direct fashion.
+In this section we want to present a na\"{i}ve algorithm and a slightly more involved improved variant, to compute \emph{one} minimal set of axioms for a given subsumption consequence, in a \emph{black-box} manner: Both Algorithm \ref{alg:linone} and \ref{alg:logone}, discussed below, only rely on deciding subsumption and counting/choosing elements of the input TBox. In contrast to Algorithm \ref{alg:sub} and its extension Algorithm \ref{alg:pin} from the previous section, the structure of individual axioms is not considered. Consequently, their high-level approach is exposed in a more direct fashion as we omit statements that deal with peculiarities, such as the structure of an axiom.
 
 Algorithm \ref{alg:linone} linearily scans a working copy of the given knowledge base: For every axiom, it is tested whether the subsumption relation under question still holds without it. If this is the case, then it is removed from the working copy. Clearly, $\mathcal{O}(|\tb|)$ subsumption tests must be performed. The result is a minimal set of axioms.
 
@@ -260,8 +260,8 @@ Algorithm \ref{alg:linone} linearily scans a working copy of the given knowledge
 Algorithm \ref{alg:logone} employs a divide-and-conquer approach reminiscent of binary search. The minimal axiom set $\mathcal{S}$ is constructed recursively. For every recursive call, the input TBox is split into two halves (lines \ref{alg:logone:split1} and \ref{alg:logone:split2}) and in case any of the two halves preserves $A \subsume B$, search is continued in this part of the input. Otherwise, $\mathcal{S}$ is constructed as the union of the result for both halves respectively. With this approach, only $\mathcal{O}((|\mathcal{S}| - 1) + |\mathcal{S}| \cdot \log(|\tb|/|\mathcal{S}|))$ subsumption tests need to be performed.
 
 \begin{algorithm}
-  \KwIn{An \elp TBox $\tb = \{a_1, \ldots, a_n\}$ over $\nc$ and $\nr$, and $A, B \in \nc$.}
-  \KwOut{If $A \subsume_\tb B$ holds, one MinA for $\tb$ wrt. $A \subsume B$, else $\emptyset$.}
+  \KwIn{An \elp TBox $\tb = \{a_1, \ldots, a_n\}$ over $\nc$ and $\nr$, and $A, B \in \nc$ as well as a \enquote{support set} (of axioms) for $A \subsume_{\tb} B$.}
+  \KwOut{minimal subset $\mathcal{S} \subseteq \tb$ s.t.~$A \subsume_{\tb \cup \mathcal{S}} B$ holds.}
   \If{$|\tb| = 1$}{
     \Return{$\tb$}
   }
@@ -291,7 +291,7 @@ In this section we briefly address the computational complexity of computing one
 Since there may be exponentially many MinAs for a given \elp TBox, it is clear that an exponential runtime in the worst-case cannot be avoided.
 
 \begin{example}[{\cite[Ex.~1]{orig1,orig2}}]
-Given $n \geq 1$, we construct a \hl TBox of size linear in $n$, that gives rise to $2^n$ MinAs: $$\tb_n := \big\{~~B_{i-1} \subsume P_i \sqcap Q_i,~~P_i \subsume B_i,~~Q_i \subsume B_i~~\mid~~1 \geq i \geq n~~\big\}$$ Note that there are $2^n$ MinAs for $\tb_n$ wrt.~$B_0 \subsume B_n$, since for each $i$ with $1 \leq i \leq n$ either the axiom $P_i \subsume B_i$ or the axiom $Q_i \subsume B_i$ alone might be in the MinA.
+Consider the language \hl which is a fragment of \elp (cf.~Table \ref{tbl:langs}). Given $n \geq 1$, we construct a \hl TBox of size linear in $n$, that gives rise to $2^n$ MinAs: $$\tb_n := \big\{~~B_{i-1} \subsume P_i \sqcap Q_i,~~P_i \subsume B_i,~~Q_i \subsume B_i~~\mid~~1 \geq i \geq n~~\big\}$$ Note that there are $2^n$ MinAs for $\tb_n$ wrt.~$B_0 \subsume B_n$, since for each $i$ with $1 \leq i \leq n$ either the axiom $P_i \subsume B_i$ or the axiom $Q_i \subsume B_i$ alone might be in the MinA.
 \end{example}
 
 With this, \cite{orig1,orig2} starts an investigation. In particular, since one might regard the problem of computing all MinAs as an enumeration problem, this raises the question whether there is an output polynomial algorithm for it.
