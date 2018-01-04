@@ -47,7 +47,7 @@ in detail. We elaborate complexity results and discuss weaker variants that stil
 \section{Introduction}
 \label{intro}
 
-Description Logic (DL)\marginpar{DL} is a successful subfield of research in Knowledge Representation and Reasoning (KRR). At its core lies a family of logic languages, called Description Logics \marginpar{DLs} (DLs). Most of these logics lie in decidable fragments of classical first order logic. Analysis of relations between expressiveness of logics and tractability of reasoning problems defined over them is a big effort within DL.
+Description Logic (DL)\marginpar{DL (field)} is a successful subfield of research in Knowledge Representation and Reasoning (KRR). At its core lies a family of logic languages, called Description Logics \marginpar{DLs (logics)} (DLs). Most of these logics lie in decidable fragments of classical first order logic. Analysis of relations between expressiveness of logics and tractability of reasoning problems defined over them is a big effort within DL.
 
 From an application standpoint\marginpar{Applications}, DLs are used to structure conceptual knowledge in problem domains like natural language processing, databases and ontologies. The Web Ontology Language (OWL), fundamental to the semantic web, is formally supported by Description Logic. Also, large biomedical knowledge bases like \snomed and \galen are expressed in DLs.
 
@@ -141,7 +141,7 @@ We will detail one glass-box approach and a black-box approach with some variati
 
 The glass box algorithm we present is designed as an extension of a polynomial-time algorithm for subsumption \cite{whatelse} in \elp (cf.~Def.~\ref{def:subs}). Therefore we first consider the algorithm for subsumption (Algorithm \ref{alg:sub}), and only then extend it to compute MinAs (Algorithm \ref{alg:pin}).
 
-Following two simplifications based on \marginpar{Normalization} normalization greatly reduce the number of cases that need to be covered in the algorithm \cite[Sec.~2]{orig1}: (1) It is sufficient to address subsumption for concept names, given the following reduction: $C \sqsubseteq_\tb D$ if $A \sqsubseteq_{\tb \cup \{A \sqsubseteq C, D \sqsubseteq B \}} B$ where $A,B$ are new concept names not occurring in $C,D,\tb$. (2) It is possible to translate a TBox $\tb$ into an equivalent one in normal form (meaning that all GCIs are of the forms as presented in Table \ref{tbl:rules}) in time $\mathcal{O}(|\tb|)$. %TODO Cite!!!
+Following two simplifications based on \marginpar{Normalization} normalization greatly reduce the number of cases that need to be covered in the algorithm \cite[Sec.~2]{orig1}: (1) It is sufficient to address subsumption for concept names, given the following reduction: $C \sqsubseteq_\tb D$ if $A \sqsubseteq_{\tb \cup \{A \sqsubseteq C, D \sqsubseteq B \}} B$ where $A,B$ are new concept names not occurring in $C,D,\tb$ (for a proof concerning \el cf.~\cite[Lemma~6.1,p.~142]{book}). (2) It is possible to translate a TBox $\tb$ into an equivalent one in normal form (meaning that all GCIs are of the forms as presented in Table \ref{tbl:rules}, cf.~\cite[Fig.~6.1, p.~143]{book}) in time $\mathcal{O}(|\tb|)$ (proven in \cite[Lemma 6.2, p.~143]{book}).
 
 \begin{algorithm}
   \KwIn{An \elp TBox $\tb$ in normal form over $\nc$ and $\nr$, and $A, B \in \nc$.}
