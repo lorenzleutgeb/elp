@@ -41,7 +41,7 @@
 Description Logic (DL) is an area of active research in the field knowledge representation and artificial intelligence. It is concerned with representing concepts in formal logics whose expressiveness lies between propositional logic and first order logic, and (computationally) reasoning about them.
 A key reasoning problem is the question of whether one concept is subsumed by another. Further, given such a subsumption relationship, the goal of axiom pinpointing is to find those axioms that give rise to the subsumption.
 We are concerned with the the description logic \elp in particular, for which subsumption can be solved in polynomial time. An algorithm for axiom pinpointing, based on a subsumption algorithm, is discussed
-in detail. We elaborate complexity results and discuss weaker variants that still behave well in practice.
+in detail. We briefly summarize complexity results and mention weaker variants that still behave well in practice.
 \end{abstract}
 
 \section{Introduction}
@@ -62,12 +62,12 @@ Note that our investigation starts with the work by Baader, Pe{\~{n}}aloza and S
 \section{Preliminaries}
 \label{sec:prelim}
 
-In this section we introduce syntax and semantics of \elp and introduce the core reasoning problem of concept subsumption.
+In this section we introduce syntax and semantics of \elp as well as the core reasoning problem of concept subsumption.
 
 Description Logic considers syntax called \emph{concept descriptions}\marginpar{Syntax}, inductively defined via \emph{constructors} from a set of concept names and a set of role names. The constructors of the respective languages relevant to this work are listed in the upper section of the column titled \emph{Syntax} in Table \ref{tbl:langs}.
 
 \begin{table}
-\caption{Overview of syntax and semantics of selected logics. Here, $A, B \in \nc$ are concept names, $C, D$ are concept descriptions, $r_1, \ldots, r_n \in \nr$ are role names. We denote an interpretation by $I$ and the corresponding domain by $\Delta^I$. GCI stands for General Concept Inclusion.}
+\caption{Overview of syntax and semantics of selected logics. Here, $A, B \in \nc$ are concept names, $C, D$ are concept descriptions (inductively), $r_1, \ldots, r_n, s \in \nr$ are role names. We denote an interpretation by $I = (\Delta^I, \cdot^I)$. GCI stands for General Concept Inclusion.}
 \begin{center}
 \rowcolors{2}{orange!5}{white}
 \begin{tabular}{|l|cc|cccc|}
@@ -97,7 +97,7 @@ Semantics\marginpar{Semantics} are defined in terms of an interpretation $I$ whi
 
 In our setting, knowledge bases take the form of finite sets of axioms. We call such a set \emph{TBox}\marginpar{TBox}, denoted by $\tb$. Axioms are relations between concept descriptions, and their form is shown in the lower section of Table \ref{tbl:langs}. We say that an axiom is \emph{satisfied} under $I$ if the corresponding condition (column titled \emph{Semantics}) holds. Further, we say that an interpretation $I$ \emph{satisfies} $\tb$ if all axioms in $\tb$ are satisfied by $I$.
 
-Since all \elp TBoxes are consistent by definition (there are no constructs that may cause logical inconsistencies \cite[Sec.~2]{orig1,orig2}), satisfiability of concepts and the consistency of TBoxes are trivial. Instead, we are generally interested in deciding the reasoning problem of \emph{concept subsumption}.
+Since all \elp TBoxes are consistent by definition (there are no constructors that may cause logical inconsistencies \cite[Sec.~2]{orig1,orig2}), satisfiability of concepts and the consistency of TBoxes are trivial. Instead, we are generally interested in deciding the reasoning problem of \emph{concept subsumption}.
 
 \begin{definition}[{Concept Subsumption, cf.~\cite[Def.~1]{orig1}}]
 \label{def:subs}
@@ -148,7 +148,7 @@ Following two simplifications based on \marginpar{Normalization} normalization g
   \KwOut{\enquote{yes} if $A \subsume_\tb B$ holds, \enquote{no} otherwise.}
   $\mathcal{A} := \{(A, A) \mid A \in \nc \}$ \tcp{Account for $A \subsume_\tb A$}
   $\hspace{4.9mm} \cup~\{(A,\top) \mid A \in \nc \}$ \tcp{Account for $A \subsume_\tb \top$}
-  \While{there is an $i$ s.t. $1 \leq i \leq 5$, $a_i \in \tb'$ and $P_i \subseteq \mathcal{A}$ \tcp{see Table \ref{tbl:rules}}}{
+  \While{there is an $i$ s.t. $1 \leq i \leq 5$, $a_i \in \tb$ and $P_i \subseteq \mathcal{A}$ \tcp{see Table \ref{tbl:rules}}}{
     $\mathcal{A} := \mathcal{A} \cup \{ q_i \}$ \tcp{Axiom $a_i$ explains $q_i$}
   }
   \If{$(A, B) \in \mathcal{A}$}{
@@ -198,10 +198,11 @@ Let $\psi$ be a pinpointing formula for $\tb$ wrt.~$A \subsume B$. Then $$\big\{
 \end{proposition}
 
 \begin{algorithm}
-  \KwIn{An \elp TBox $\tb$ in normal form over $\nc$ and $\nr$.}
+  \label{alg:allminas}
+  \KwIn{An \elp TBox $\tb$ in normal form over $\nc$.}
   \KwOut{A set of assertions and a labeling function.}
   $\mathcal{A} := \{(A, A) \mid A \in \nc \}$ \label{alg:pin:acc:begin} \tcp{Account for $A \subsume_\tb A$.}
-  $\hspace{4.9mm} \cup~\{(A,\top) \mid A \in \nc \}$ \label{alg:pin:acc:end} \tcp{Account for $A \subsume_\tb \top$.}
+  $\hspace{4.6mm} \cup~\{(A,\top) \mid A \in \nc \}$ \label{alg:pin:acc:end} \tcp{Account for $A \subsume_\tb \top$.}
   $lab(a) := \texttt{true}$ for all $a \in \mathcal{A}$ \label{alg:pin:initlbl} \tcp{Initialize labels.}
   \While{there is an $i$ s.t. $1 \leq i \leq 5$, $a_i \in \tb$ and $P_i \subseteq \mathcal{A}$ \label{alg:pin:loop:begin}\tcp{see Table \ref{tbl:rules}}}{
       $\phi = lab(a_i) \wedge \bigwedge_{p \in P_i} lab(p)$ \\
@@ -210,12 +211,13 @@ Let $\psi$ be a pinpointing formula for $\tb$ wrt.~$A \subsume B$. Then $$\big\{
         $\mathcal{A} := \mathcal{A} \cup \{ q_i \}$\\
         $lab(q_i) := \phi$\\
       }
-      \Else{\tcp{$q_i$ can already be explained, $a_i$ might be a new explanation!}
+      \Else{\label{alg:allminas:else:begin} \tcp{$q_i$ can already be explained, $a_i$ might be a new explanation!}
         $\psi = lab(q_i)$ \\
         \If{$\psi \vee \phi \not \equiv \psi$}{
           \tcp{Override, as $q_i$ might be explained by $\psi$ or $\phi$.}
           $lab(q_i) := \psi \vee \phi$
         }
+        \label{alg:allminas:else:end}
       }
       \label{alg:pin:loop:end}
   }
@@ -257,16 +259,16 @@ Algorithm \ref{alg:linone} linearily scans a working copy of the given knowledge
   \label{alg:linone}
 \end{algorithm}
 
-Algorithm \ref{alg:logone} employs a divide-and-conquer approach reminiscent of binary search. The minimal axiom set $\mathcal{S}$ is constructed recursively. For every recursive call, the input TBox is split into two halves (lines \ref{alg:logone:split1} and \ref{alg:logone:split2}) and in case any of the two halves preserves $A \subsume B$, search is continued in this part of the input. Otherwise, $\mathcal{S}$ is constructed as the union of the result for both halves respectively. With this approach, only $\mathcal{O}((|\mathcal{S}| - 1) + |\mathcal{S}| \cdot \log(|\tb|/|\mathcal{S}|))$ subsumption tests need to be performed.
+Algorithm \ref{alg:logone} employs a divide-and-conquer approach reminiscent of binary search. The minimal axiom set $\mathcal{S}$ is constructed recursively. For every recursive call, the input TBox is split into two halves (lines \ref{alg:logone:split1} and \ref{alg:logone:split2}) and in case any of the two halves preserves $A \subsume B$, search is continued in this part of the input. Otherwise, $\mathcal{S}$ is constructed as the union of the result for both halves respectively. With this approach, only $\mathcal{O}((|\mathcal{S}| - 1) + |\mathcal{S}| \cdot \log(|\tb|/|\mathcal{S}|))$ subsumption tests need to be performed \cite[p.~89]{meng-phd}.
 
 \begin{algorithm}
-  \KwIn{An \elp TBox $\tb = \{a_1, \ldots, a_n\}$ over $\nc$ and $\nr$, and $A, B \in \nc$ as well as a \enquote{support set} (of axioms) for $A \subsume_{\tb} B$.}
-  \KwOut{minimal subset $\mathcal{S} \subseteq \tb$ s.t.~$A \subsume_{\tb \cup \mathcal{S}} B$ holds.}
+  \KwIn{An \elp TBox $\tb = \{a_1, \ldots, a_n\}$ over $\nc$ and $\nr$, and $A, B \in \nc$ s.t.~$A \subsume_{\tb} B$ holds, as well as a \enquote{support set} (of axioms) for $A \subsume_{\tb} B$.}
+  \KwOut{minimal subset $\mathcal{S}' \subseteq \tb$ s.t.~$A \subsume_{\mathcal{S} \cup \mathcal{S'}} B$ holds.}
   \If{$|\tb| = 1$}{
     \Return{$\tb$}
   }
-  $L := \{ a_i \in \tb \mid 1 \leq i \leq \nicefrac{n}{2} \}$ \label{alg:logone:split1}\\
-  $R := \{ a_i \in \tb \mid \nicefrac{n}{2} + 1 \leq i \leq n \}$ \label{alg:logone:split2}\\
+  $L := \{ a_i \in \tb \mid 1 \leq i \leq \lfloor \nicefrac{n}{2} \rfloor \}$ \label{alg:logone:split1}\\
+  $R := \{ a_i \in \tb \mid \lfloor \nicefrac{n}{2} \rfloor + 1 \leq i \leq n \}$ \label{alg:logone:split2}\\
   \If{$A \subsume_{\mathcal{S} \cup L} B$}{
     \Return{\textsc{LogOneMinA}($L$, $A$, $B$, $\mathcal{S}$)}
   }
@@ -283,22 +285,33 @@ Algorithm \ref{alg:logone} employs a divide-and-conquer approach reminiscent of 
 \section{Complexity}
 \label{sec:cmplx}
 
-In this section we briefly address the computational complexity of computing one MinA and all MinAs respectively.
+In this section we briefly address the computational complexity of computing all MinAs and one MinA respectively.
 
 \subsection{All MinAs}
 \label{sec:all}
 
-Since there may be exponentially many MinAs for a given \elp TBox, it is clear that an exponential runtime in the worst-case cannot be avoided.
+Since there may be exponentially many MinAs for a given \elp TBox, it is clear that an exponential run-time in the worst-case cannot be avoided.
 
 \begin{example}[{\cite[Ex.~1]{orig1,orig2}}]
-Consider the language \hl which is a fragment of \elp (cf.~Table \ref{tbl:langs}). Given $n \geq 1$, we construct a \hl TBox of size linear in $n$, that gives rise to $2^n$ MinAs: $$\tb_n := \big\{~~B_{i-1} \subsume P_i \sqcap Q_i,~~P_i \subsume B_i,~~Q_i \subsume B_i~~\mid~~1 \geq i \geq n~~\big\}$$ Note that there are $2^n$ MinAs for $\tb_n$ wrt.~$B_0 \subsume B_n$, since for each $i$ with $1 \leq i \leq n$ either the axiom $P_i \subsume B_i$ or the axiom $Q_i \subsume B_i$ alone might be in the MinA.
+Consider the language \hl, which is a fragment of \elp (cf.~Table \ref{tbl:langs}). Given $n \geq 1$, we construct a \hl TBox of size linear in $n$, that gives rise to $2^n$ MinAs: $$\tb_n := \big\{~~B_{i-1} \subsume P_i \sqcap Q_i,~~P_i \subsume B_i,~~Q_i \subsume B_i~~\mid~~1 \geq i \geq n~~\big\}$$ Note that there are $2^n$ MinAs for $\tb_n$ wrt.~$B_0 \subsume B_n$, since for each $i$ with $1 \leq i \leq n$ either the axiom $P_i \subsume B_i$ or the axiom $Q_i \subsume B_i$ alone might be in the MinA.
 \end{example}
 
-With this, \cite{orig1,orig2} starts an investigation. In particular, since one might regard the problem of computing all MinAs as an enumeration problem, this raises the question whether there is an output polynomial algorithm for it.
+Further, it can be shown that computing any interesting property of the set of all MinAs is not possible in polynomial time (unless P = NP).
 
-A first result \cite[Thm.~5]{orig1,orig2} shows that there there is no output polynomial algorithm that computes all MinAs, unless \textsc{P} = \textsc{NP}, for a more specific setting where some axioms in the \tb are considered \emph{static} (not refutable).
+\begin{theorem}[{\cite[Thm.~3 without partitioning $\tb$]{orig1,orig2}}]
+Given an \hl TBox $\tb$, concept names $A, B$ occurring in $\tb$, and a natural number $n$, it is NP-complete to decide whether or not there is a MinA $\mathcal{S}$ for $\tb$ wrt.~$A \subsume B$ such that $|\mathcal{S}| \leq n$.
+\end{theorem}
 
-Following that, in \cite[Thm.~2]{hard} the more general case (all axioms refutable) is shown to be \enquote{at least as hard as recognizing the set of all minimal transversals of a given hypergraph \cite{hypmintrav}, which is a prominent open problem in hypergraph theory} (quoting from \cite{hard}, importance of the problem surveyed in~\cite{hyperai}).
+With this, \cite{orig1,orig2} starts further investigation. In particular, since one might regard the problem of computing all MinAs as an enumeration problem, this raises the question whether there is an \emph{output polynomial} algorithm for it. An algorithm with this property would only take polynomial time in cases where the number of MinAs is polynomial in the size of the input. However, after showing that there is no output polynomial algorithm for computing all minimal satisfying valuations of monotone Boolean formulae (unless P = NP) \cite[Thm.~4]{orig1,orig2}, a negative result is presented:
+
+\begin{theorem}[{\cite[Thm.~5]{orig1,orig2}}]
+\label{thm:nopol}
+There is no output polynomial algorithm that computes for a given \hl TBox $\tb = (\mathcal{T}_s \uplus \mathcal{T}_r)$ and concept names $A, B$ occurring in $\tb$, all MinAs for $\tb$ wrt.~$A \subsume B$, unless P = NP.
+\end{theorem}
+
+Note that the setting considered in \cite{orig1,orig2} and in the above theorem the TBox $\tb$ is split into \enquote{static} part of $\tb$, denoted $\tb_s$ and $\tb_r$, the \enquote{refutable} part respectively. These parts are disjoint as $\uplus$ stands for the \emph{disjoint union} of two sets.
+
+The question whether Theorem \ref{thm:nopol} also holds for the case where $\tb_s = \emptyset$, which corresponds to the view in this work, is addressed in \cite[Thm.~2]{hard}, where the problem of computing all MinAs is shown to be \enquote{at least as hard as recognizing the set of all minimal transversals of a given hypergraph \cite{hypmintrav}, which is a prominent open problem in hypergraph theory} (quoting from \cite{hard}, importance of the problem surveyed in~\cite{hyperai}).
 
 A comprehensive analysis of the complexity of computing all MinAs in different variants can be found in \cite{family}, where similar logics are considered.
 
@@ -307,15 +320,19 @@ A comprehensive analysis of the complexity of computing all MinAs in different v
 
 Algorithm \ref{alg:linone} shows how one MinA can be computed in polynomial time. Since the loop in lines \ref{alg:linone:loop:begin}-\ref{alg:linone:loop:end} is executed exactly $n = |\tb|$ times, and the subsumption test also runs in time $\mathcal{O}(P(|\tb|))$, an overall time complexity polynomial in $|\tb|$ is achieved. The result is highlighted in \cite[Thm.~6]{orig1,orig2}.
 
-\section{Towards Application in Practice}
+\section{Implementations and Application in Practice}
 
 As stated in the previous section, computing one MinA takes time polynomial in the number of axioms in the TBox, thus in the size of the knowledge base. While this might sound promising for practical applications and implementation, experimental reports show a different picture: In \cite[Sec.~5.2, p.~97]{meng-phd}, Suntisrivaraporn states that \enquote{The na\"{i}ve minimization algorithm did not terminate on \snomed in 48 hours}.
 
+To make use of pinpointing in practice, \cite[Sec.~5]{orig1,orig2} proposes a trade-off. By relaxing the minimality property of computed axiom sets, significant gains in runtime can be realized. To decrease the size of the input for a black-box algorithm, a greedy algorithm based on Algorithm \ref{alg:allminas}, where the branch in lines \ref{alg:allminas:else:begin}-\ref{alg:allminas:else:end} is dropped, makes a pre-selection, purposefully breaking minimality. The remaining set is minimized using Algorithm \ref{alg:linone}.
+
+With this approach, run times for the Galen \cite{galen} ontology decreased from 7 hours to approximately 10 minutes with an increase in size of 2.59\% \cite[Sec.~5]{orig1,orig2}.
+
 Further empirical results are given in \cite[Sec.~6.2.5, p.~127]{meng-phd}.
 
-\subsection{Summary}
+\section{Summary}
 
-We have presented a formalization of axiom pinpointing based on \cite{orig1,orig2} and covered a glass-box as well as two black-box algorithms to compute MinAs. Complexity for the case of all MinAs still is not fully resolved.
+We have presented a formalization of axiom pinpointing based on \cite{orig1,orig2} and covered a glass-box as well as two black-box algorithms to compute MinAs. While implementations for computing one MinAs are practicable, the complexity of enumerating all MinAs is not fully resolved.
 
 \bibliography{ref}
 
