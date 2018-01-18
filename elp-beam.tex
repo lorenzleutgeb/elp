@@ -1,0 +1,423 @@
+\documentclass[xcolor={table,usenames,dvipsnames}]{beamer}
+
+% Suggested improvements:
+%  - Actually apply AllMinAs to the example in a step-by-step manner.
+%  - Remove references, they are too noisy.
+%  - Expand on Complexity.
+%  - How is this useful to the person working with the ontology? (maybe mention MaxAs)
+%  - Use overlays consistently throughout the presentation.
+%  - Maybe explain the algorithms using text and bullet lists with overlays.
+
+\usetheme[sectionpage=progressbar,subsectionpage=progressbar,block=fill]{metropolis}
+
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{xspace}
+\usepackage{mathrsfs}
+\usepackage{bibentry}
+\usepackage[scale=1.5]{ccicons}
+
+\usepackage{hyperref}
+
+\usepackage{amsmath,amssymb} % For \flalign, \top, ...
+\usepackage[algoruled,linesnumbered]{algorithm2e}
+
+\setlength{\algoheightrule}{0.5pt} % thickness of the rules above and below
+\setlength{\algotitleheightrule}{0.5pt} % thicknes of the rule below the title
+
+\usepackage{nicefrac,xspace,csquotes}
+
+% If we want article-style math even in the presentation.
+%\usefonttheme[onlymath]{serif}
+
+\newcommand{\elp}{\ensuremath{\mathcal{EL^+}}\xspace}
+\newcommand{\elpp}{\ensuremath{\mathcal{EL^{++}}}\xspace}
+\newcommand{\el}{\ensuremath{\mathcal{EL}}\xspace}
+\newcommand{\hl}{\ensuremath{\mathcal{HL}}\xspace}
+\newcommand{\tb}{\ensuremath{\mathcal{T}}\xspace} % TBox
+\newcommand{\nc}{\ensuremath{\mathsf{N_C}}\xspace} % concept names
+\newcommand{\nr}{\ensuremath{\mathsf{N_R}}\xspace} % role names
+
+\newcommand{\snomed}{\textsc{Snomed CT}\xspace}
+\newcommand{\galen}{\textsc{Galen}\xspace}
+
+\newcommand{\subsume}{\sqsubseteq}
+
+\title{Pinpointing in the Description Logic \texorpdfstring{\elp}{EL+}}
+\author{\texorpdfstring{Lorenz Leutgeb \newline \texttt{\footnotesize lorenz@leutgeb.xyz}}{Lorenz Leutgeb <lorenz@leutgeb.xyz>}}
+\institute{International Center for Computational Logic, TU Dresden\\[10mm] \begin{center}\ccbysa \\[1mm] \tiny{This work is licensed under \href{http://creativecommons.org/licenses/by-sa/4.0/}{Creative Commons BY-SA 4.0}.}\end{center}}
+\date{2017-01-18}
+
+\nobibliography*
+
+\begin{document}
+ 
+\begin{frame}[plain]
+\maketitle
+\end{frame}
+
+\begin{frame}[plain]
+Paper available for download at:\\[3mm] \url{https://lorenz.leutgeb.xyz/paper/elp.pdf}\vfill
+
+\noindent\rule{\textwidth}{0.5pt}\vfill
+
+Based on:\\[3mm]
+
+\large{Pinpointing in the Description Logic \elp}\\[1mm]
+Baader, Pe\~{n}aloza, and Suntisrivaraporn\\[2mm]
+30\textsuperscript{th} Annual German Conference on AI, 2007\\[3mm]
+{\small \color{gray}{(detailed reference in the end)}}
+\end{frame}
+ 
+\begin{frame}{Agenda}
+\tableofcontents
+\end{frame}
+
+\section{Introduction}
+
+\subsection{Syntax and Semantics}
+
+\begin{frame}{Syntax and Semantics \cite[Sec.~2, Tbl.~1]{orig2}}
+
+{\small
+\rowcolors{2}{mLightBrown!20}{white}
+\setlength\tabcolsep{3pt}
+\begin{tabular}{|l|cc|ccc|}
+\hline
+Name & Syntax & Semantics &\hl &\el & \elp \\
+\hline
+\hline
+Top & $\top$ & $\Delta^I$ & $\bullet$ & $\bullet$ & $\bullet$ \\
+Conjunction & $ C \sqcap D $ & $C^I \cap D^I$ & $\bullet$ & $\bullet$ & $\bullet$ \\
+Existential Restr.~& $ \exists r . C $ & $\ast$ & & $\bullet$ & $\bullet$ \\
+\hline
+\hline
+GCI\footnote{General Concept Inclusion} & $C \sqsubseteq D$ & $C^I \subseteq D^I$ & $\bullet$ & $\bullet$ & $\bullet$ \\
+Concept Definition & $C \equiv D$ & $C^I = D^I$ & $\bullet$ & $\bullet$ & $\bullet$ \\
+Role Inclusion & $r_1 \circ \cdots \circ r_n \sqsubseteq s$ & $r_1^I \circ \cdots \circ r_n^I \subseteq s^I$ & & & $\bullet$ \\
+\hline
+\end{tabular}}
+
+$\text{$\ast$: } \{x \in \Delta^I \mid \text{there exists } y \in \Delta^I \text{ s.t.~} (x, y) \in r^I \text{ and } y \in C^I \}$
+\begin{itemize}
+\item{Concept Descriptions $C, D$ (inductively)}
+\item{Role Names $r_1, \ldots, r_n, s$}
+\item{Classical Interpretation $I = (\Delta^I, \cdot^I)$}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Example: \hl and Horn Logic Programming (cf.~\cite[Sec.~2]{orig2})}
+
+\begin{align*}
+	\mathsf{woman} &\subsume \mathsf{person} & \text{\texttt{person :- }}&\text{\texttt{woman.}}\\
+	\mathsf{man} &\subsume \mathsf{person} & \text{\texttt{person :- }}&\text{\texttt{man.}}\\
+	\mathsf{parent} \sqcap \mathsf{woman} &\subsume \mathsf{mother} & \text{\texttt{mother :- }}&\text{\texttt{parent, woman.}}
+\end{align*}
+
+\end{frame}
+
+\subsection{TBoxes and Concept Subsumption}
+
+\begin{frame}{TBoxes and Concept Subsumption}
+\begin{itemize}
+\item We consider knowledge bases that are  \emph{finite sets of axioms}, called \alert{TBoxes}, denoted $\tb$.
+\item Key questions wrt.~TBoxes are \alert{satisfiability} and \alert{concept subsumption}.
+\end{itemize}
+
+\begin{definition}[{Concept Subsumption, cf.~\cite[Def.~1]{orig1}}]
+\label{def:subs}
+Given two concept descriptions $C, D$ and a TBox \tb, $C$ is subsumed by $D$ wrt.~\tb (written $C \sqsubseteq_\tb D$) if for every interpretation $I$ that satisfies \tb we have $C^I \subseteq D^I$.
+\end{definition}
+\end{frame}
+
+\subsection{Pinpointing}
+
+\begin{frame}{Motivation for Pinpointing}
+\alert<1>{Given a TBox \ldots}
+{\footnotesize \begin{flalign}
+\mathsf{Human} &\subsume \exists \mathsf{parent} . \mathsf{Human} & \text{Humans have a human parent.} \tag{$a_1$} \\
+\mathsf{Human} &\subsume \mathsf{Monkey} & \text{Humans are monkeys.} \tag{$a_2$} \\
+\exists \mathsf{parent} . \mathsf{Monkey} &\subsume \mathsf{Animal} & \text{Monkey parent? It's an animal.} \tag{$a_3$} \\
+\mathsf{Monkey} &\subsume \mathsf{Animal} & \text{Monkeys are animals.} \tag{$a_4$} \\
+\mathsf{Fish} &\subsume \mathsf{Animal} & \text{Fish are animals.} \tag{$a_5$}
+\end{flalign}}
+
+\visible<2->{
+\alert<2>{We observe that \ldots}
+\begin{flalign*}
+\mathsf{Human} \subsume \mathsf{Animal}
+\end{flalign*}}
+
+\visible<3->{\alert<3>{And ask ourselves: Why?}}
+\end{frame}
+
+\begin{frame}{Motivation for Pinpointing}
+Formalization of our question yields \alert{Pinpointing}, a process that results in \emph{minimal axiom sets}:\\[5mm]
+
+\begin{definition}[{MinA, cf.~\cite[Def.~2 without partitioning $\tb$]{orig1}}]
+\label{def:mina}
+Let $\tb$ be a TBox and $A, B$ concept names occurring in it such that $A \subsume_\tb B$. Then a \alert{minimal axiom set (MinA)} for \tb wr.t.~$A \subsume B$ is a subset $\mathcal{S} \subseteq \tb$ such that $$A \subsume_\mathcal{S} B$$ and for all $\mathcal{S'} \subset \mathcal{S}$ we have $$A \not \subsume_\mathcal{S'} B$$
+\end{definition}
+\end{frame}
+
+\begin{frame}{Motivation for Pinpointing}
+
+{\footnotesize
+\begin{flalign}
+\mathsf{Human} &\subsume \exists \mathsf{parent} . \mathsf{Human} & \text{Humans have a human parent.} \tag{$a_1$} \\
+\mathsf{Human} &\subsume \mathsf{Monkey} & \text{Humans are monkeys.} \tag{$a_2$} \\
+\exists \mathsf{parent} . \mathsf{Monkey} &\subsume \mathsf{Animal} & \text{Monkey parent? It's an animal.} \tag{$a_3$} \\
+\mathsf{Monkey} &\subsume \mathsf{Animal} & \text{Monkeys are animals.} \tag{$a_4$} \\
+\mathsf{Fish} &\subsume \mathsf{Animal} & \text{Fish are animals.} \tag{$a_5$}
+\end{flalign}}
+
+$$\mathsf{Human} \subsume \mathsf{Animal}$$
+
+$$ \text{Minimal Axiom Sets (MinAs):  } \{ a_2, a_4 \}, \{  a_1, a_2, a_3 \}$$
+\end{frame}
+
+\begin{frame}{Example: \snomed \cite[Fig.~6.8, p.~128]{meng-phd}}
+
+{\footnotesize{
+\begin{flalign*}
+\textsf{direct-procedure-site} \subsume & \textsf{procedure-site} \\
+AmputationOfFinger \subsume & AmputationOfFingerNotThumb \\
+\textsf{AmputationOfFingerNotThumb} \equiv & \textsf{HandExcision} \sqcap \\ & \exists roleGroup . ( \\ & \quad  \exists\textsf{direct-procedure-site} . \textsf{Finger}_S \sqcap  \\ & \quad \exists \textsf{method} . \textsf{Amputation} ) \\
+\textsf{AmputationOfHand} \equiv & \textsf{HandExcision} \sqcap \\ & \exists roleGroup . ( \\ & \quad  \exists\textsf{direct-procedure-site} . \textsf{Finger}_S \sqcap  \\ & \quad \exists \textsf{method} . \textsf{Amputation} ) \\
+Finger_S \subsume & DigitOfHand_S \sqcap Hand_P \\
+Hand_P \subsume & Hand_S \sqcap UpperExtremity_P
+\end{flalign*}
+}}
+\end{frame}
+
+\section{Algorithms}
+
+\begin{frame}{White-Box vs.~Black-Box Algorithms}
+\begin{description}
+\item[White-Box] Inspects syntax of axioms, more \enquote{low-level}.\\[4mm]
+\item[Black-Box] Relies on reasoning services (subsumption) only.
+\end{description}
+\end{frame}
+
+\subsection{Pinpointing via Labeling}
+
+\begin{frame}{Subsumption Algorithm for \elp}
+Based on following \alert{completion rules}\footnote{adapted from \cite[Fig.~1]{orig1,orig2}, see also \cite[Fig.~5.2, p.~104]{meng-phd}} wrt.~a TBox $\tb$. Rule $i$ is applicable if $a_i \in \tb$ and $P_i \subseteq \tb' \setminus \tb$. If rule $i$ is applied, then $q_i$ is added to $\tb'$.
+\begin{table}
+\begin{center}
+\rowcolors{2}{mLightBrown!20}{white}
+\setlength\tabcolsep{4pt}
+\begin{tabular}{|c|rcll|l|}
+\hline
+{\bfseries } & \multicolumn{4}{c|}{\bfseries Applicability} & \multicolumn{1}{c|}{\bfseries Result} \\
+$i$
+ & \multicolumn{3}{c}{$a_i$ (axiom)} & $P_i$ (set of $\tb$-seq) & $q_i$ ($\tb$-seq) \\
+\hline\hline
+1& $A_1 \sqcap \cdots \sqcap A_n$&$\sqsubseteq$&$B$ & $X \subsume A_1 , \ldots , X \subsume A_n$ & $X \subsume B$ \\
+2& $A$&$\subsume$&$\exists r.B$ & $X \subsume A$ & $X \subsume \exists r . B$ \\
+3& $\exists r.A$&$\subsume$&$B$ & $X \subsume \exists r . Y, Y \subsume A$ & $X \subsume B$ \\
+4& $r$&$\subsume$&$s$ & $X \subsume \exists r . Y$ & $X \subsume \exists s . Y$ \\
+5& $r \circ r'$&$\subsume$&$s$ & $ X \subsume \exists r . Y, Y \subsume \exists r'. Z$ & $X \subsume \exists s . Z$\\
+\hline
+\end{tabular}
+\end{center}
+\label{tbl:rules}
+\end{table}
+\end{frame}
+
+\begin{frame}
+\begin{algorithm}[H]
+  \KwIn{An \elp TBox $\tb$ in normal form over $\nc$ and $A, B \in \nc$.}
+  \KwOut{\enquote{yes} if $A \subsume_\tb B$ holds, \enquote{no} otherwise.}
+  $\tb' := \{ A \subsume A, A \subsume \top \mid A \in \nc \}$ \\
+  \While{there is a rule $i$ s.t. $1 \leq i \leq 5$, $a_i \in \tb$ and $P_i \subseteq \tb'$}{
+    $\tb' := \tb' \cup \{ q_i \}$ \\
+  }
+  \Return{\emph{\enquote{yes}} \emph{\textbf{if}} $A \subsume B \in \tb'$ \emph{\textbf{otherwise}} \emph{\enquote{no}}}
+  \caption{\textsc{Subsumption}($\tb$, $A$, $B$)}
+  \label{alg:sub}
+\end{algorithm}
+\end{frame}
+
+\begin{frame}{Subsumption Algorithm for \elp}
+\alert{The algorithm \ldots}
+\begin{itemize}[<+->]
+\item requires a normalized TBox. Normalization is always possible and can be computed in linear time\footnote{proof for $\el$ in \cite[Lemma 6.2]{book} and \elpp in \cite[Lemma 1]{pushing}}.
+\item restricts to concept names. We may introduce new concept names $A \subsume C, D \subsume B$ for any concepts $C, D$.
+\item is correct\footnotemark \footnotetext{\label{mynote} \cite[Thm.~1]{orig2}}: $A \subsume_\tb B \text{ iff }A \subsume B \in \tb'$
+\item runs in time polynomial in the size of the input TBox\footnotemark[4].
+\item actually computes all concept subsumptions. This is easily extended to a \emph{classification algorithm}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Pinpointing Formula}
+
+{\footnotesize
+\begin{flalign}
+\mathsf{Human} &\subsume \exists \mathsf{parent} . \mathsf{Human} & \text{Humans have a human parent.} \tag{$a_1$} \\
+\mathsf{Human} &\subsume \mathsf{Monkey} & \text{Humans are monkeys.} \tag{$a_2$} \\
+\exists \mathsf{parent} . \mathsf{Monkey} &\subsume \mathsf{Animal} & \text{Monkey parent? It's an animal.} \tag{$a_3$} \\
+\mathsf{Monkey} &\subsume \mathsf{Animal} & \text{Monkeys are animals.} \tag{$a_4$} \\
+\mathsf{Fish} &\subsume \mathsf{Animal} & \text{Fish are animals.} \tag{$a_5$}
+\end{flalign}
+}
+$$\mathsf{Human} \subsume \mathsf{Animal}$$
+
+$$ \text{Minimal Axiom Sets (MinAs):  } \{ a_2, a_4 \}, \{  a_1, a_2, a_3 \}$$
+\end{frame}
+
+\begin{frame}{Pinpointing Formula}
+
+{\footnotesize
+\begin{flalign}
+\mathsf{Human} &\subsume \exists \mathsf{parent} . \mathsf{Human} & \text{Humans have a human parent.} \tag{$a_1$} \\
+\mathsf{Human} &\subsume \mathsf{Monkey} & \text{Humans are monkeys.} \tag{$a_2$} \\
+\exists \mathsf{parent} . \mathsf{Monkey} &\subsume \mathsf{Animal} & \text{Monkey parent? It's an animal.} \tag{$a_3$} \\
+\mathsf{Monkey} &\subsume \mathsf{Animal} & \text{Monkeys are animals.} \tag{$a_4$} \\
+\mathsf{Fish} &\subsume \mathsf{Animal} & \text{Fish are animals.} \tag{$a_5$}
+\end{flalign}
+}
+$$\mathsf{Human} \subsume \mathsf{Animal}$$
+
+$$ \text{Pinpointing Formula:  } a_2 \wedge (a_4 \vee (a_1 \wedge a_3))$$
+\end{frame}
+
+\begin{frame}{Pinpointing Formula}
+
+\begin{itemize}
+\item Let $lab(\tb)$ be the set of labels of all axioms in \tb.
+\item Let $\mathcal{V} \subseteq lab(\tb)$ be a valuation wrt.~\tb.
+\item Let $\tb_\mathcal{V} = \{ a \in \tb \mid lab(a) \in \mathcal{V}\}$ be the selection of axioms with a label that is true under $\mathcal{V}$.\\[6mm]
+\end{itemize}
+
+\begin{definition}[{Pinpointing Formula \cite[Def.~3]{orig1}}]
+Given an \elp TBox \tb and concept names $A,B$ occurring in it, a monotone Boolean formula $\psi$ over $lab(\tb)$ is a \alert{pinpointing formula} for $\tb$ wrt.~$A \subsume B$ if for every valuation $\mathcal{V} \subseteq lab(\tb)$ it holds that $A \subsume_{\tb_\mathcal{V}} B$ iff $\mathcal{V}$ satisfies $\psi$.
+\end{definition}
+
+\begin{itemize}
+\item Given a pinpointing formula $\psi$, we can construct corresponding MinAs \cite[Prop.~1]{orig2}:
+$$\{ \tb_{\mathcal{V}} \mid \mathcal{V} \models \psi \text{ and } \mathcal{V} \text{ is } \text{$\subseteq$-minimal} \}$$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\vspace{3mm}
+\small{
+\begin{algorithm}[H]
+  \KwIn{An \elp TBox $\tb$ in normal form over $\nc$.}
+  \KwOut{A TBox $\tb'$ and a labeling function.}
+  Assign $\tb' := \{A \subsume A, A \subsume \top \mid A \in \nc \}$ and $lab(a) := \texttt{true}$ f.~a.~$a \in \tb'$\\
+  \While{there is a rule $i$ s.t. $1 \leq i \leq 5$, $a_i \in \tb$ and $P_i \subseteq \tb'$ \label{alg:pin:loop:begin}}{
+      $\phi = lab(a_i) \wedge \bigwedge_{p \in P_i} lab(p)$ \\
+      \uIf{$q_i \not \in \tb'$}{
+        $\tb' := \tb' \cup \{ q_i \}$\\
+        $lab(q_i) := \phi$\\
+      }
+      \Else{
+        $\psi = lab(q_i)$ \\
+        \If{$\psi \vee \phi \not \equiv \psi$}{
+          $lab(q_i) := \psi \vee \phi$
+        }
+      }
+      \label{alg:pin:loop:end}
+  }
+  \Return{$(\tb', lab)$}
+  \caption{\textsc{AllMinAs}($\tb$)}
+  \label{alg:pin}
+\end{algorithm}
+}
+\end{frame}
+
+\begin{frame}{Labeling Algorithm}
+\begin{itemize}
+\item We obtain $\tb'$ like before, but additionally a labeling $lab$.
+\item All $\subseteq$-minimal valuations that satisfy $lab(A \subsume B)$ correspond to a MinA for $\tb$ wrt.~$A \subsume B$ \cite[Thm.~2]{orig2}. 
+\item The algorithm runs in time exponential in the size of the input TBox\footnote{direct argumentation in \cite[Sec.~3]{orig2}}, exhibited by $$\tb_n := \big\{ B_{i-1} \subsume P_i \sqcap Q_i, \quad P_i \subsume B_i, \quad Q_i \subsume B_i \quad  \mid \quad 1 \geq i \geq n \big\}$$
+
+which yields $2^n$ MinAs for $\tb_n$ wrt.~$B_0 \subsume B_n$ \footnote{cf. \cite[Example 1]{orig2}}.
+\end{itemize}
+\end{frame}
+
+\subsection{Pinpointing via Subsumption as Black-Box}
+
+\begin{frame}
+\vspace{10mm}
+\begin{algorithm}[H]
+  \KwIn{A TBox $\tb = \{a_1, \ldots, a_n\}$ over $\nc$ and $A, B \in \nc$.}
+  \KwOut{If $A \subsume_\tb B$ holds, one MinA for $\tb$ wrt. $A \subsume B$, else $\emptyset$.}
+  \If{$A \not \subsume_\tb B$}{
+    \Return{$\emptyset$}
+  }
+  $\mathcal{S} := \tb$ \\
+  \ForEach{$a_i \in \tb$ \label{alg:linone:loop:begin}}{
+  \If{$A \subsume_{\mathcal{S} \setminus \{a_i\}} B$}{
+    $\mathcal{S} := \mathcal{S} \setminus \{ a_i \}$ \\
+  }
+  \label{alg:linone:loop:end}
+  }
+  \Return{$\mathcal{S}$}
+  \caption{\textsc{LinOneMinA}($\tb$, $A$, $B$) (cf.~\cite[Alg.~1]{orig2,debugging}, \cite[Alg.~7, p.~97]{meng-phd})}
+  \label{alg:linone}
+\end{algorithm}
+\end{frame}
+
+\begin{frame}{Pinpointing via Subsumption as Black-Box}
+
+\begin{itemize}
+\item Linearily scans $\tb$ with one call to subsumption per axiom. Thus, runs in polynomial time overall. \cite[Thm.~6]{orig2}
+\item \enquote{\ldots~did not terminate on \snomed in 48hrs \ldots} \cite[p.~97]{meng-phd}.
+\item Can be improved by using a \enquote{sliding window} approach or binary search.
+\item Black-Box algorithms that compute all MinAs are certainly possible.
+\end{itemize}
+
+\end{frame}
+
+\section{Complexity and Tradeoffs in Practice}
+
+\begin{frame}{Complexity}
+\begin{enumerate}
+\item Computing all MinAs takes exponential time.\\ Is there an \alert{output polynomial algorithm}?
+
+\item Computing one MinA takes polynomial time.\\
+This is still bad for large knowledge bases.\\
+Can we make trade-offs to \alert{be faster in practice}?
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{All MinAs}
+An output polynomial algorithm?\\
+\begin{itemize}
+\item \cite[Thm.~5]{orig2} shows this is \alert{not possible} for the case of a TBox with non-refutable part (unless P = NP).
+\item In \cite[Thm.~2]{hard} computing all MinAs is established to be \alert{as least as hard as computing the set of all minimal transversals of a hypergraph}, which is in coNP and no output polynomial alorithm is known (cf.~\cite{hyperai}).
+\end{itemize}
+Also, computing properties wrt.~all MinAs cannot be achieved in polynomial time (unless P = NP) \cite[Sec.~4]{orig2}.
+\end{frame}
+
+\begin{frame}{One MinA}
+Polynomial, but still too slow in practice.
+
+\begin{enumerate}
+\item Let's take some $\tb' \subset \tb$ with $A \subsume_{\tb'} B$ and run the algorithm on that!
+\item To get $\tb'$, take the labeling algorithm and drop the re-labeling branch.
+\item Other greedy algorithms might perform well/better.
+\end{enumerate}
+Results: 10min vs.~7hrs with just 2.59\% difference in size.\footnote{simplified, cf.~\cite[Sec.~5]{orig2}}
+\end{frame}
+
+\begin{frame}{Recap}
+\tableofcontents
+\end{frame}
+
+\begin{frame}[standout]
+Questions, please!
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
+
+{\tiny{\bibliography{ref} \bibliographystyle{abbrv}}}
+\end{frame}
+
+\end{document}
