@@ -143,17 +143,17 @@ We will detail one glass-box approach and a black-box approach with some variati
 \subsection{Glass-Box Approach}
 \label{sec:glass}
 
-The glass box algorithm we present is designed as an extension of a polynomial-time algorithm for subsumption \cite{whatelse} in \elp (cf.~Def.~\ref{def:subs}). Therefore we first consider the algorithm for subsumption (Algorithm \ref{alg:sub}), and only then extend it to compute MinAs (Algorithm \ref{alg:pin}).
+The glass-box algorithm we present is designed as an extension of a polynomial-time algorithm for subsumption \cite{whatelse} in \elp (cf.~Def.~\ref{def:subs}). Therefore we first consider the algorithm for subsumption (Algorithm \ref{alg:sub}), and only then extend it to compute MinAs (Algorithm \ref{alg:pin}).
 
-Following two simplifications based on \marginpar{Normalization} normalization greatly reduce the number of cases that need to be covered in the algorithm \cite[Sec.~2]{orig1}: (1) It is sufficient to address subsumption for concept names, given the following reduction: $C \sqsubseteq_\tb D$ if $A \sqsubseteq_{\tb \cup \{A \sqsubseteq C, D \sqsubseteq B \}} B$ where $A,B$ are new concept names not occurring in $C,D,\tb$ (for a proof concerning \el cf.~\cite[Lemma~6.1,p.~142]{book}). (2) It is possible to translate a TBox $\tb$ into an equivalent one in normal form (meaning that all GCIs are of the forms as presented in Table \ref{tbl:rules}, cf.~\cite[Fig.~6.1, p.~143]{book}) in time $\mathcal{O}(|\tb|)$ (proven in \cite[Lemma 6.2, p.~143]{book}).
+Following two simplifications based on \marginpar{Normalization} normalization greatly reduce the number of cases that need to be covered in the algorithm \cite[Sec.~2]{orig1}: (1) It is sufficient to address subsumption for concept names, given the following reduction: $C \sqsubseteq_\tb D$ iff $A \sqsubseteq_{\tb \cup \{A \sqsubseteq C, D \sqsubseteq B \}} B$ where $A,B$ are new concept names not occurring in $C,D,\tb$ (for a proof concerning \el cf.~\cite[Lemma~6.1,p.~142]{book}). (2) It is possible to translate a TBox $\tb$ into a \emph{normalized TBox} (meaning that all GCIs are of the forms as presented in Table \ref{tbl:rules}, cf.~\cite[Fig.~6.1, p.~143]{book}) in time $\mathcal{O}(|\tb|)$ (proven in \cite[Lemma 6.2, p.~143]{book}).
 
 \begin{algorithm}
   \KwIn{An \elp TBox $\tb$ in normal form over $\nc$ and $\nr$, and $A, B \in \nc$.}
   \KwOut{\enquote{yes} if $A \subsume_\tb B$ holds, \enquote{no} otherwise.}
   $\mathcal{A} := \{(A, A) \mid A \in \nc \}$ \tcp{Account for $A \subsume_\tb A$}
   $\hspace{4.9mm} \cup~\{(A,\top) \mid A \in \nc \}$ \tcp{Account for $A \subsume_\tb \top$}
-  \While{there is an $i$ s.t. $1 \leq i \leq 5$, $a_i \in \tb$ and $P_i \subseteq \mathcal{A}$ \tcp{see Table \ref{tbl:rules}}}{
-    $\mathcal{A} := \mathcal{A} \cup \{ q_i \}$ \tcp{Axiom $a_i$ explains $q_i$}
+  \While{there is an $i$ s.t. $1 \leq r \leq 5$, $a_r \in \tb$ and $P_r \subseteq \mathcal{A}$ \tcp{see Table \ref{tbl:rules}}}{
+    $\mathcal{A} := \mathcal{A} \cup \{ q_r \}$ \tcp{Axiom $a_r$ explains $q_r$}
   }
   \If{$(A, B) \in \mathcal{A}$}{
     \Return{\emph{\enquote{yes}}}
@@ -163,17 +163,17 @@ Following two simplifications based on \marginpar{Normalization} normalization g
   \label{alg:sub}
 \end{algorithm}
 
-Note that lines 3 and 5 in Algorithm \ref{alg:sub} refer to Table \ref{tbl:rules}, and that the choice of $i$ in those lines is don't care nondeterministic.
+Note that lines 3 and 5 in Algorithm \ref{alg:sub} refer to Table \ref{tbl:rules}, and that the choice of $r$ (and therefore the rule to apply) in those lines is don't care nondeterministic.
 
 \begin{table}
-\caption{Completion rules for subsumption in \elp, adapted from \cite[Fig.~1]{orig1,orig2}, see also \cite[Fig.~5.2, p.~104]{meng-phd}. Rule $i$ is applicable if $a_i \in \tb$ and $P_i \subseteq \ab$. If rule $i$ is applied, then $q_i$ is added to $\ab$.}
+\caption{Completion rules for subsumption in \elp, adapted from \cite[Fig.~1]{orig1,orig2}, see also \cite[Fig.~5.2, p.~104]{meng-phd}. Rule $r$ is applicable if $a_r \in \tb$ and $P_r \subseteq \ab$. If rule $r$ is applied, then $q_r$ is added to $\ab$.}
 \begin{center}
 \rowcolors{2}{orange!5}{white}
 \begin{tabular}{|c|rcll|l|}
 \hline
 {\bfseries Rule} & \multicolumn{4}{c|}{\bfseries Applicability} & \multicolumn{1}{c|}{\bfseries Result} \\
-$i$
- & \multicolumn{3}{c}{$a_i$ (GCI)} & $P_i$ (set of assertions) & $q_i$ (assertion) \\
+$r$
+ & \multicolumn{3}{c}{$a_r$ (GCI)} & $P_r$ (set of assertions) & $q_r$ (assertion) \\
 \hline\hline
 1& $A_1 \sqcap \cdots \sqcap A_n$&$\sqsubseteq$&$B$ & $(X, A_1), \ldots, (X,A_n)$ & $(X,B)$ \\
 2& $A$&$\sqsubseteq$&$\exists r.B$ & $(X,A)$ & $(X,r,B)$ \\
@@ -186,7 +186,7 @@ $i$
 \label{tbl:rules}
 \end{table}
 
-Now we extend Algorithm \ref{alg:sub} to compute all MinAs in two steps: First, we modify it so that a monotone Boolean \emph{pinpointing formula} that corresponds to the subsumption relation in question is generated via labeling of assertions. Second, we obtain MinAs by finding models for the pinpointing formula, such that the interpretation of propositional variables corresponds to a selection of axioms in the MinAs.
+Now we extend Algorithm \ref{alg:sub} to compute all MinAs in two steps: First, we modify it so that a monotone Boolean \emph{pinpointing formula} that corresponds to the subsumption relation in question is generated via labeling of assertions. Second, we obtain these MinAs by constructing models for the pinpointing formula, such that the interpretation of propositional variables corresponds to a selection of axioms in the MinAs. Together this means that we can efficiently encode MinAs by means of Boolean formulae.
 
 By means of a labeling function\marginpar{Labeling} $lab : \tb \longrightarrow \mathcal{R}$ (where $\mathcal{R}$ is a set of propositional variables) every axiom $a \in \tb$ is labeled with a unique propositional variable $lab(a) \in \mathcal{R}$, and we denote by $lab(\tb) \subseteq \mathcal{R}$ the set of labels of all axioms in $\tb$. A \emph{monotone Boolean formula over $lab(\tb)$} is a Boolean formula using (some of) the propositional variables $lab(\tb)$ and only the binary connectives conjunction and disjunction, as well as the nullary connective \texttt{true} for truth. A \marginpar{Valuation}\emph{valuation} is characterized by the set of propositional variables that it assigns to be true. For a valuation $\mathcal{V} \subseteq lab(\tb)$ let $\tb_\mathcal{V} = \{ a \in \tb \mid lab(a) \in \mathcal{V}\}$ be the selection of axioms for which their corresponding label evaluates to true under $\mathcal{V}$.
 
@@ -194,7 +194,7 @@ By means of a labeling function\marginpar{Labeling} $lab : \tb \longrightarrow \
 Given \marginpar{Pinpointing Formula} an \elp TBox \tb and concept names $A,B$ occuring in it, a monotone Boolean formula $\psi$ over $lab(\tb)$ is a \emph{pinpointing formula} for $\tb$ wrt.~$A \subsume B$ if for every valuation $\mathcal{V} \subseteq lab(\tb)$ it holds that $A \subsume_{\tb_\mathcal{V}} B$ iff $\mathcal{V}$ satisfies $\psi$.
 \end{definition}
 
-For the two MinAs in Example \ref{ex:ha}, $\mathcal{S}_1 = \{a_2, a_4\}$ and $\mathcal{S}_2 = \{ a_1, a_2, a_3 \}$, we obtain $a_2 \wedge (a_4 \vee (a_1 \wedge a_3))$ as a pinpointing formula.
+For the two MinAs in Example \ref{ex:ha}, $\mathcal{S}_1 = \{a_2, a_4\}$ and $\mathcal{S}_2 = \{ a_1, a_2, a_3 \}$, we obtain $\phi = a_2 \wedge (a_4 \vee (a_1 \wedge a_3))$ as a pinpointing formula. An obvious connection can be pointed out by translating $\phi$ into disjunctive normal form (DNF) which yields $(a_2 \wedge a_4) \vee (a_1 \wedge a_2 \wedge a_3)$. 
 Lastly, to establish a correspondence, we also need to address $\subseteq$-minimality of valuations.
 
 \begin{proposition}[{\cite[Prop.~1]{orig1}}]
@@ -208,18 +208,18 @@ Let $\psi$ be a pinpointing formula for $\tb$ wrt.~$A \subsume B$. Then $$\big\{
   $\mathcal{A} := \{(A, A) \mid A \in \nc \}$ \label{alg:pin:acc:begin} \tcp{Account for $A \subsume_\tb A$.}
   $\hspace{4.6mm} \cup~\{(A,\top) \mid A \in \nc \}$ \label{alg:pin:acc:end} \tcp{Account for $A \subsume_\tb \top$.}
   $lab(a) := \texttt{true}$ for all $a \in \mathcal{A}$ \label{alg:pin:initlbl} \tcp{Initialize labels.}
-  \While{there is an $i$ s.t. $1 \leq i \leq 5$, $a_i \in \tb$ and $P_i \subseteq \mathcal{A}$ \label{alg:pin:loop:begin}\tcp{see Table \ref{tbl:rules}}}{
-      $\phi = lab(a_i) \wedge \bigwedge_{p \in P_i} lab(p)$ \\
-      \uIf{$q_i \not \in \mathcal{A}$}{
-          \tcp{$a_i$ is the only known explanation of $a_i$.}
+  \While{there is an $r$ s.t. $1 \leq r \leq 5$, $a_r \in \tb$ and $P_r \subseteq \mathcal{A}$ \label{alg:pin:loop:begin}\tcp{see Table \ref{tbl:rules}}}{
+      $\phi = lab(a_r) \wedge \bigwedge_{p \in P_r} lab(p)$ \\
+      \uIf{$q_r \not \in \mathcal{A}$}{
+          \tcp{$a_i$ is the only known explanation of $a_r$.}
         $\mathcal{A} := \mathcal{A} \cup \{ q_i \}$\\
-        $lab(q_i) := \phi$\\
+        $lab(q_r) := \phi$\\
       }
-      \Else{\label{alg:allminas:else:begin} \tcp{$q_i$ can already be explained, $a_i$ might be a new explanation!}
-        $\psi = lab(q_i)$ \\
+      \Else{\label{alg:allminas:else:begin} \tcp{$q_r$ can already be explained, $a_r$ might be a new explanation!}
+        $\psi = lab(q_r)$ \\
         \If{$\psi \vee \phi \not \equiv \psi$}{
           \tcp{Override, as $q_i$ might be explained by $\psi$ or $\phi$.}
-          $lab(q_i) := \psi \vee \phi$
+          $lab(q_r) := \psi \vee \phi$
         }
         \label{alg:allminas:else:end}
       }
@@ -236,7 +236,20 @@ Note that Algorithm \ref{alg:pin} terminates in time exponential in $|\tb|$, and
 
 More formally (cf.~\cite[Thm.~2]{orig1,orig2}), the resulting set of assertions $\mathcal{A}$, after termination of the loop in lines \ref{alg:pin:loop:begin}-\ref{alg:pin:loop:end} satisfies the following properties: (1) $A \subsume_\tb B$ if and only if $(A, B) \in \mathcal{A}$, and (2) $lab((A,B))$ is a pinpointing formula for $\tb$ wrt. $A \subsume B$.
 
-As expected, this algorithm may be generalized so that the input need not be normalized (cf.~\cite[Sec.~3]{orig1,orig2} and \cite[Sec.~5.2, p.~107]{meng-phd}).
+\begin{example}
+Reconsider the TBox $\tb$ from Example \ref{ex:ha}. We trace the execution of the loop in \textsc{AllMinAs}(\tb):
+
+\begin{enumerate}
+\item $r = 1$: Since we have $a_2$ asserting that $\mathsf{Human} \subsume \mathsf{Monkey}$ and $(\mathsf{Human}, \mathsf{Human}) \in \mathcal{A}$ labeled \texttt{true}, the assertion $(\mathsf{Human}, \mathsf{Monkey})$ with label $a_2 \wedge\texttt {true} \equiv a_2$ is added.
+\item $r = 2$: We may add $(\mathsf{Human}, \mathsf{parent}, \mathsf{Human})$ with label $a_1 \wedge \texttt{true} \equiv a_1$.
+\item $r = 1$: Given $a_4$ and $(\mathsf{Human}, \mathsf{Monkey}) \in \mathcal{A}$ (from iteration 1) we add $(\mathsf{Human}, \mathsf{Monkey})$ to $\mathcal{A}$ with label $a_2 \wedge a_4$.
+\item $r = 3$: Finally, for $a_3$ and $(\mathsf{Human}, \mathsf{Monkey}), (\mathsf{Human}, \mathsf{parent}, \mathsf{Human}) \in \mathcal{A}$, the label for $(\mathsf{Human}, \mathsf{Animal})$ is overridden to $(a_2 \wedge a_4) \vee (a_1 \wedge a_2 \wedge a_3)$.
+\end{enumerate}
+
+Since no more assertions can be added after four iterations, the algorithm terminates. The label for $(\mathsf{Human}, \mathsf{Animal})$, and therefore the computed pinpointing formula corresponding to $\mathsf{Human} \subsume \mathsf{Animal}$, is $(a_2 \wedge a_4) \vee (a_1 \wedge a_2 \wedge a_3)$ as expected.
+\end{example}
+
+Lastly \marginpar{Denormalization}, we need to address normalization assumptions: In case the input TBox $\tb$ was obtained from another TBox $\widehat{\tb}$ by normalization, the resulting pinpointing formula may be translated to correspond to $\widehat{\tb}$. To do this, we assume a unique labeling of axioms in $\widehat{T}$ and note that any axiom in $\tb$ has some corresponding \emph{sources} in $\widehat{\tb}$, since $\tb$ is generated by splitting axioms from $\widehat{\tb}$ until they all are in normal form. Now to translate a pinpointing formula $\phi$ for $\tb$ into a pinpointing formula for $\widehat{\tb}$, replace each axiom label in $\phi$ with a disjunction of all the labels of the source axioms of the corresponding axiom (see \cite[Sec.~3, Sec.~5]{orig1,orig2} and for a formal argument \cite[Sec.~5.2, p.~107]{meng-phd}).
 
 \subsection{Black-Box Approaches}
 \label{sec:black}
@@ -297,6 +310,7 @@ In this section we briefly address the computational complexity of computing all
 Since there may be exponentially many MinAs for a given \elp TBox, it is clear that an exponential run-time in the worst-case cannot be avoided.
 
 \begin{example}[{\cite[Ex.~1]{orig1,orig2}}]
+\label{ex}
 Consider the language \hl, which is a fragment of \elp (cf.~Table \ref{tbl:langs}). Given $n \geq 1$, we construct a \hl TBox of size linear in $n$, that gives rise to $2^n$ MinAs: $$\tb_n := \big\{~~B_{i-1} \subsume P_i \sqcap Q_i,~~P_i \subsume B_i,~~Q_i \subsume B_i~~\mid~~1 \geq i \geq n~~\big\}$$ Note that there are $2^n$ MinAs for $\tb_n$ wrt.~$B_0 \subsume B_n$, since for each $i$ with $1 \leq i \leq n$ either the axiom $P_i \subsume B_i$ or the axiom $Q_i \subsume B_i$ might be in a MinA.
 \end{example}
 
@@ -329,7 +343,25 @@ Algorithm \ref{alg:linone} shows how one MinA can be computed in polynomial time
 
 As stated in the previous section, computing one MinA takes time polynomial in the number of axioms in the TBox, i.e.~in the size of the knowledge base. While this might sound promising for practical applications and implementation, experimental reports show a different picture: In \cite[Sec.~5.2, p.~97]{meng-phd}, Suntisrivaraporn states that \enquote{The na\"{i}ve minimization algorithm [Algorithm \ref{alg:linone}] did not terminate on \snomed in 48 hours}.
 
-To make use of pinpointing in practice, \cite[Sec.~5]{orig1,orig2} proposes a trade-off. By relaxing the minimality property of computed axiom sets, significant gains in runtime can be realized. To decrease the size of the input for a black-box algorithm, a greedy algorithm based on Algorithm \ref{alg:allminas}, where the branch in lines \ref{alg:allminas:else:begin}-\ref{alg:allminas:else:end} is dropped, makes a pre-selection, purposefully breaking minimality. The remaining set is minimized using Algorithm \ref{alg:linone}.
+To make use of pinpointing in practice, \cite[Sec.~5]{orig1,orig2} proposes a trade-off. By relaxing the minimality property of computed axiom sets, significant gains in runtime can be realized. To decrease the size of the input for a black-box algorithm, a greedy algorithm based on Algorithm \ref{alg:allminas}, where the branch in lines \ref{alg:allminas:else:begin}-\ref{alg:allminas:else:end} is dropped, makes a pre-selection. Note that minimality breaks, since only the first explanation that the algorithm considers will be reflected by the label. The remaining set is minimized using Algorithm \ref{alg:linone}.
+
+\begin{example}
+To highlight how minimality is given up when using the modified, greedy version of Algorithm \ref{alg:allminas}, consider the following TBox $\tb$:
+
+\begin{align*}
+A &\subsume X \quad (a_1) &
+X &\subsume Y \quad (a_2) \\
+Y &\subsume X \quad (a_3) &
+X &\subsume B \quad (a_4) \\
+Z &\subsume X \quad (a_5) &
+\end{align*}
+
+Note that we might explain $A \subsume B$ wrt.~$\tb$ by two sets of axioms $\mathcal{S}_1 = \{ a_1, a_4 \}$ or $\mathcal{S}_2 = \{ a_1, a_2, a_3, a_4 \}$. However, since $\mathcal{S}_2 \supset \mathcal{S}_1$, we see that $\mathcal{S}_2$ is not a MinAs, but $\mathcal{S}_1$ is.
+
+Running Algorithm \ref{alg:allminas} normally would yield the pinpointing formula $(a_1 \wedge a_4) \vee (a_1, a_2, a_3, a_4)$, and by the minimality condition in Proposition \ref{prop:corr} we arrive at $\mathcal{S}_1$. However, with the greedy modification, it is possible that we obtain either of two different pinpointing formulas, $\phi_1 = a_1 \wedge a_4$ and $\phi_2 = a_1 \wedge a_2 \wedge a_3 \wedge a_4$. This is because of the fact that rule application is don't care nondeterministic. So, in case the algorithm labels $(A, B)$ by $\phi_2$, we arrive at the non-minimal set of explanations $\mathcal{S}_2$. Through further minimization by means of Algorithm \ref{alg:linone} the final result $\mathcal{S}_1$ is obtained.
+\end{example}
+
+A denormalization translation, similar to the one described in Section \ref{sec:glass} might be needed, which introduces disjunction to the pinpointing formula \cite[Sec.~5]{orig1,orig2}. In order to keep polynomial runtime, a greedy strategy to find valuations might be appropriate.
 
 With this approach, run times for the Galen \cite{galen} ontology decreased from 7 hours to approximately 10 minutes with an increase in size of 2.59\% \cite[Sec.~5]{orig1,orig2}.
 
